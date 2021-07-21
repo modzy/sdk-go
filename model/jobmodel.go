@@ -1,10 +1,6 @@
 // model package contains types as defined by the http api.
 package model
 
-import (
-	"time"
-)
-
 type ModelIdentifier struct {
 	Identifier string `json:"identifier"`
 	Version    string `json:"version"`
@@ -52,7 +48,7 @@ type SubmitJobResponse struct {
 	AccessKey                string                  `json:"accessKey"`
 	JobInputs                SubmitJobResponseInputs `json:"jobInputs"`
 	InputByteAmount          int                     `json:"inputByteAmount"`
-	SubmittedAt              time.Time               `json:"submittedAt"`
+	SubmittedAt              ModzyTime               `json:"submittedAt"`
 	ImageClassificationModel bool                    `json:"imageClassificationModel"`
 }
 
@@ -68,9 +64,9 @@ type JobDetails struct {
 	AccountIdentifier        string               `json:"accountIdentifier"`
 	Model                    ModelNamedIdentifier `json:"model"`
 	Status                   string               `json:"status"`
-	CreatedAt                time.Time            `json:"createdAt"`
-	UpdatedAt                time.Time            `json:"updatedAt"`
-	SubmittedAt              time.Time            `json:"submittedAt"`
+	CreatedAt                ModzyTime            `json:"createdAt"`
+	UpdatedAt                ModzyTime            `json:"updatedAt"`
+	SubmittedAt              ModzyTime            `json:"submittedAt"`
 	Total                    int                  `json:"total"`
 	Pending                  int                  `json:"pending"`
 	Completed                int                  `json:"completed"`
@@ -84,22 +80,3 @@ type JobDetails struct {
 	Team                     Team                 `json:"team"`
 	ImageClassificationModel bool                 `json:"imageClassificationModel"`
 }
-
-// type JobResults struct {
-// 	JobIdentifier string `json:"jobIdentifier"`
-// 	Total         int    `json:"total"`
-// 	Completed     int    `json:"completed"`
-// 	Failed        int    `json:"failed"`
-// 	Finished      bool   `json:"finished"`
-// 	SubmittedBy   string `json:"submittedByKey"`
-// }
-
-// type JobResult struct {
-// 	Status      string          `json:"status"`
-// 	Engine      string          `json:"engine"`
-// 	StartTime   time.Time       `json:"startTime"`
-// 	UpdateTime  time.Time       `json:"updateTime"`
-// 	EndTime     time.Time       `json:"endTime"`
-// 	ElapsedTime int             `json:"elapsedTime"`
-// 	ResultsJSON json.RawMessage `json:"results.json"`
-// }

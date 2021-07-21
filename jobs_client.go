@@ -9,6 +9,7 @@ import (
 )
 
 type JobsClient interface {
+	NewJobActions(jobIdentifier string) JobActions
 	// TODO - do we want this?  Should they just use the jobs/history?
 	// ListJobs(ctx context.Context, input *ListJobsInput) (*ListJobsOutput, error)
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
@@ -26,6 +27,10 @@ type JobsClient interface {
 
 type standardJobsClient struct {
 	baseClient *standardClient
+}
+
+func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
+	return NewJobActions(c.baseClient, jobIdentifier)
 }
 
 // func (c *standardJobsClient) ListJobs(ctx context.Context, input *ListJobsInput) (*ListJobsOutput, error) {
@@ -144,7 +149,7 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 
 	return &SubmitJobTextOutput{
 		Response:   response,
-		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
+		JobActions: c.NewJobActions(response.JobIdentifier),
 	}, nil
 }
 
@@ -195,5 +200,15 @@ func (c *standardJobsClient) CancelJob(ctx context.Context, input *CancelJobInpu
 }
 
 func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error) {
-	return nil, ErrNotImplemented
+	var response model.JobResults
+
+	url := fmt.Sprintf("/api/results/%s", input.JobIdentifier)
+	_, err := c.baseClient.get(ctx, url, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetJobResultsOutput{
+		Results: response,
+	}, nil
 }

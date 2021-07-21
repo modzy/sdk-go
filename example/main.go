@@ -3,6 +3,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -25,8 +27,17 @@ func main() {
 	// listJobs(client, false)
 	// listJobsHistory(client)
 	// errorChecking()
-	submitExampleText(client, true)
 	// submitExampleText(client, false)
+	// submitExampleText(client, false)
+
+	actions := client.Jobs().NewJobActions("86b76e20-c506-485d-af4e-2072c41ca35b")
+	jobResults, err := actions.GetResults(context.TODO())
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get resutls for job")
+	} else {
+		js, _ := json.Marshal(jobResults)
+		fmt.Fprintf(logrus.StandardLogger().Out, "%s\n", js)
+	}
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
@@ -155,14 +166,19 @@ func submitExampleText(client modzy.Client, cancel bool) {
 		}
 		logrus.Infof("Job canceled: %s, %d", cancelOut.Details.Status, cancelOut.Details.HoursDeleteInput)
 		return
+	} else {
+		logrus.Info("Will wait until job completes")
+		jobDetails, err := submittedJob.WaitForCompletion(ctx, time.Second*5)
+		if err != nil {
+			logrus.WithError(err).Fatalf("Failed to wait for job completion")
+			return
+		}
+		logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
+		jobResults, err := submittedJob.GetResults(ctx)
+		if err != nil {
+			logrus.WithError(err).Fatalf("Failed to get job results")
+			return
+		}
+		logrus.Infof("Job results: %s -> %d results", jobResults.Results.JobIdentifier, jobResults.Results.Total)
 	}
-
-	logrus.Info("Will wait until job completes")
-	jobDetails, err := submittedJob.WaitForCompletion(ctx, time.Second*5)
-	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to wait for job completion")
-		return
-	}
-	logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
-
 }

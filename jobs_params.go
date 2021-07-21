@@ -142,4 +142,5 @@ type GetJobResultsInput struct {
 }
 
 type GetJobResultsOutput struct {
+	Results model.JobResults
 }
