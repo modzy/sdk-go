@@ -63,7 +63,7 @@ func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
 func (c *standardJobsClient) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	var out model.JobDetails
 	url := fmt.Sprintf("/api/jobs/%s", input.JobIdentifier)
-	_, err := c.baseClient.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJob
 
 	var items []model.JobSummary
 	url := "/api/jobs/history"
-	_, links, err := c.baseClient.list(ctx, url, input.Paging, &items)
+	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 	var response model.SubmitJobResponse
 
 	url := "/api/jobs"
-	_, err := c.baseClient.post(ctx, url, toPost, &response)
+	_, err := c.baseClient.requestor.post(ctx, url, toPost, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (c *standardJobsClient) CancelJob(ctx context.Context, input *CancelJobInpu
 	var response model.JobDetails
 
 	url := fmt.Sprintf("/api/jobs/%s", input.JobIdentifier)
-	_, err := c.baseClient.delete(ctx, url, &response)
+	_, err := c.baseClient.requestor.delete(ctx, url, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobRes
 	var response model.JobResults
 
 	url := fmt.Sprintf("/api/results/%s", input.JobIdentifier)
-	_, err := c.baseClient.get(ctx, url, &response)
+	_, err := c.baseClient.requestor.get(ctx, url, &response)
 	if err != nil {
 		return nil, err
 	}

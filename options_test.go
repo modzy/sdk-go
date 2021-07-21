@@ -6,30 +6,36 @@ import (
 )
 
 func TestClientOptionWithHTTPClient(t *testing.T) {
-	client := &standardClient{}
+	client := &standardClient{
+		requestor: &requestor{},
+	}
 	httpClient := &http.Client{}
 	WithHTTPClient(httpClient)(client)
-	if client.httpClient != httpClient {
+	if client.requestor.httpClient != httpClient {
 		t.Errorf("Option did not set httpClient")
 	}
 }
 
 func TestClientOptionWithHTTPDebugging(t *testing.T) {
-	client := &standardClient{}
+	client := &standardClient{
+		requestor: &requestor{},
+	}
 	WithHTTPDebugging(true, false)(client)
-	if !client.requestDebugging {
+	if !client.requestor.requestDebugging {
 		t.Errorf("Expected requestDebugging to be true")
 	}
-	if client.responseDebugging {
+	if client.requestor.responseDebugging {
 		t.Errorf("Expected responseDebugging to be false")
 	}
 
-	client = &standardClient{}
+	client = &standardClient{
+		requestor: &requestor{},
+	}
 	WithHTTPDebugging(false, true)(client)
-	if client.requestDebugging {
+	if client.requestor.requestDebugging {
 		t.Errorf("Expected requestDebugging to be false")
 	}
-	if !client.responseDebugging {
+	if !client.requestor.responseDebugging {
 		t.Errorf("Expected requestDebugging to be true")
 	}
 }
