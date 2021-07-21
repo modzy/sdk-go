@@ -7,7 +7,7 @@ import (
 
 type JobActions interface {
 	GetDetails(ctx context.Context) (*GetJobDetailsOutput, error)
-	GetModelDetails(ctx context.Context) (*GetModelDetailsOutput, error)
+	GetModelDetails(ctx context.Context) (*GetModelVersionDetailsOutput, error)
 	WaitForCompletion(ctx context.Context, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	Cancel(ctx context.Context) (*CancelJobOutput, error)
 	GetResults(ctx context.Context) (*GetJobResultsOutput, error)
@@ -49,12 +49,12 @@ func (j *standardJobActions) GetResults(ctx context.Context) (*GetJobResultsOutp
 	})
 }
 
-func (j *standardJobActions) GetModelDetails(ctx context.Context) (*GetModelDetailsOutput, error) {
+func (j *standardJobActions) GetModelDetails(ctx context.Context) (*GetModelVersionDetailsOutput, error) {
 	jobDetails, err := j.GetDetails(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return j.client.Models().GetModelDetails(ctx, &GetModelDetailsInput{
+	return j.client.Models().GetModelVersionDetails(ctx, &GetModelVersionDetailsInput{
 		Identifier: jobDetails.Details.Model.Identifier,
 		Version:    jobDetails.Details.Model.Version,
 	})

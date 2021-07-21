@@ -10,19 +10,19 @@ import (
 
 type JobsClient interface {
 	NewJobActions(jobIdentifier string) JobActions
-	// TODO - do we want this?  Should they just use the jobs/history?
-	// ListJobs(ctx context.Context, input *ListJobsInput) (*ListJobsOutput, error)
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	WaitForJobCompletion(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
-	// TODO for python sdk parity
 	// SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	// SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
+
+	// GET:/jobs/features
+	//ListJobFeatures(ctx context.Context, input *ListJobFeaturesInput) (*ListJobsFeaturesOutput, error)
 }
 
 type standardJobsClient struct {
