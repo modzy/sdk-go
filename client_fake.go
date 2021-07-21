@@ -6,6 +6,7 @@ type ClientFake struct {
 	WithTeamKeyFunc func(teamID string, token string) Client
 	WithOptionsFunc func(opts ...ClientOption) Client
 	JobsFunc        func() JobsClient
+	ModelsFunc      func() ModelsClient
 }
 
 var _ Client = &ClientFake{}
@@ -24,4 +25,8 @@ func (c *ClientFake) WithOptions(opts ...ClientOption) Client {
 
 func (c *ClientFake) Jobs() JobsClient {
 	return c.JobsFunc()
+}
+
+func (c *ClientFake) Models() ModelsClient {
+	return c.ModelsFunc()
 }

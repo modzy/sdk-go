@@ -29,6 +29,8 @@ type standardJobsClient struct {
 	baseClient *standardClient
 }
 
+var _ JobsClient = &standardJobsClient{}
+
 func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
 	return NewJobActions(c.baseClient, jobIdentifier)
 }

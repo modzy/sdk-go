@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"time"
 
@@ -29,15 +28,7 @@ func main() {
 	// errorChecking()
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
-
-	actions := client.Jobs().NewJobActions("86b76e20-c506-485d-af4e-2072c41ca35b")
-	jobResults, err := actions.GetResults(context.TODO())
-	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to get resutls for job")
-	} else {
-		js, _ := json.Marshal(jobResults)
-		fmt.Fprintf(logrus.StandardLogger().Out, "%s\n", js)
-	}
+	describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
@@ -180,5 +171,30 @@ func submitExampleText(client modzy.Client, cancel bool) {
 			return
 		}
 		logrus.Infof("Job results: %s -> %d results", jobResults.Results.JobIdentifier, jobResults.Results.Total)
+	}
+}
+
+func describeJob(client modzy.Client, jobIdentifier string) {
+	ctx := context.TODO()
+
+	actions := client.Jobs().NewJobActions(jobIdentifier)
+	jobResults, err := actions.GetResults(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get resutls for job")
+	} else {
+		logrus.Info("Dumping job results")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(jobResults)
+	}
+
+	modelDetails, err := actions.GetModelDetails(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details for job %s", jobIdentifier)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(modelDetails)
 	}
 }

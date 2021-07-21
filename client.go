@@ -10,13 +10,14 @@ type Client interface {
 	WithTeamKey(teamID string, token string) Client
 	WithOptions(opts ...ClientOption) Client
 	Jobs() JobsClient
-	// Models() ModelsClient
+	Models() ModelsClient
 	// Tags() TagsClient
 }
 
 type standardClient struct {
-	jobsClient *standardJobsClient
-	requestor  *requestor
+	jobsClient   *standardJobsClient
+	modelsClient *standardModelsClient
+	requestor    *requestor
 }
 
 func NewClient(baseURL string, opts ...ClientOption) Client {
@@ -30,6 +31,9 @@ func NewClient(baseURL string, opts ...ClientOption) Client {
 
 	// setup our namespaced groupings that all share this as their base client
 	client.jobsClient = &standardJobsClient{
+		baseClient: client,
+	}
+	client.modelsClient = &standardModelsClient{
 		baseClient: client,
 	}
 
@@ -63,7 +67,12 @@ func (c *standardClient) WithOptions(opts ...ClientOption) Client {
 	return c
 }
 
-// Jobs returns a client for acess all job related API functions
+// Jobs returns a client for access to all job related API functions
 func (c *standardClient) Jobs() JobsClient {
 	return c.jobsClient
+}
+
+// Models returns a client for access to all model related API functions
+func (c *standardClient) Models() ModelsClient {
+	return c.modelsClient
 }
