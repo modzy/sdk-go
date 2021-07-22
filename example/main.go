@@ -27,7 +27,6 @@ func main() {
 		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
 	}
 
-	// listJobs(client, false)
 	// listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
@@ -35,46 +34,10 @@ func main() {
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
-	getMinimumEngines(client)
+	// getMinimumEngines(client)
+	getJobFeatures(client)
+	listModels(client)
 }
-
-// func listJobs(client modzy.Client, outputDetails bool) {
-
-// 	logrus.Info("Will list jobs")
-
-// 	// This will read the list of jobs, and continue paging until complete
-// 	listJobsInput := (&modzy.ListJobsInput{}).
-// 		WithPaging(2, 1)
-
-// 	for listJobsInput != nil {
-// 		listJobsOut, err := client.Jobs().ListJobs(ctx, listJobsInput)
-// 		if err != nil {
-// 			logrus.WithError(err).Fatalf("Failed to read jobs")
-// 			return
-// 		}
-
-// 		logrus.Infof("Found %d jobs", len(listJobsOut.Jobs))
-
-// 		if outputDetails {
-// 			for _, job := range listJobsOut.Jobs {
-// 				logrus.Infof("- Job: [%s] %s", job.Status, job.JobIdentifier)
-
-// 				jobDetails, err := client.Jobs().GetJobDetails(ctx, &modzy.GetJobDetailsInput{
-// 					JobIdentifier: job.JobIdentifier,
-// 				})
-// 				if err != nil {
-// 					logrus.WithError(err).Fatalf("Failed to read job details: %s", job.JobIdentifier)
-// 					return
-// 				}
-// 				logrus.Infof("  - Model Name: %s", jobDetails.Details.Model.Name)
-// 				logrus.Infof("  - Completed: %d", jobDetails.Details.Completed)
-// 			}
-// 		}
-
-// 		// read the next page
-// 		listJobsInput = listJobsOut.NextPage
-// 	}
-// }
 
 func listJobsHistory(client modzy.Client) {
 	logrus.Info("Will list job histories")
@@ -197,6 +160,16 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 	}
 }
 
+func getJobFeatures(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list features")
+		return
+	}
+	logrus.Infof("Features: %+v", out.Features)
+}
+
 func getMinimumEngines(client modzy.Client) {
 	out, err := client.Models().GetMinimumEngines(ctx)
 	if err != nil {
@@ -227,4 +200,17 @@ func getRelatedModels(client modzy.Client, modelID string) {
 	} else {
 		logrus.Infof("Found %d related models", len(out.RelatedModels))
 	}
+}
+
+func listModels(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Models().ListModels(ctx, (&modzy.ListModelsInput{}).
+		WithFilterAnd(modzy.ListModelsFilterFieldAuthor, "modzy").
+		WithFilterAnd(modzy.ListModelsFilterFieldIsActive, "false"),
+	)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list imodels")
+		return
+	}
+	logrus.Infof("Models: %+v", out.Models)
 }

@@ -80,3 +80,9 @@ type JobDetails struct {
 	Team                     Team                 `json:"team"`
 	ImageClassificationModel bool                 `json:"imageClassificationModel"`
 }
+
+type JobFeatures struct {
+	InputChunkMaximumSize string `json:"inputChunkMaximumSize"`
+	MaximumInputChunks    int    `json:"maximumInputChunks"`
+	MaximumInputsPerJob   int    `json:"maximumInputsPerJob"`
+}

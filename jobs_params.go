@@ -144,3 +144,10 @@ type GetJobResultsInput struct {
 type GetJobResultsOutput struct {
 	Results model.JobResults
 }
+
+type GetJobFeaturesInput struct {
+}
+
+type GetJobFeaturesOutput struct {
+	Features model.JobFeatures `json:"features"`
+}
