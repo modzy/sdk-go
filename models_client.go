@@ -3,6 +3,7 @@ package modzy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/modzy/go-sdk/model"
 )
@@ -34,8 +35,7 @@ type ModelsClient interface {
 	// GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
 
 	GetTags(ctx context.Context) (*GetTagsOutput, error)
-
-	ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsOutput, error)
+	GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error)
 }
 
 type standardModelsClient struct {
@@ -133,7 +133,13 @@ func (c *standardModelsClient) GetTags(ctx context.Context) (*GetTagsOutput, err
 	}, nil
 }
 
-func (c *standardModelsClient) ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsOutput, error) {
-	// GET:/models/tags/{tagId}[,{tagId},...]
-	return nil, nil
+func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error) {
+	var out GetTagModelsOutput
+	url := fmt.Sprintf("/api/models/tags/%s", strings.Join(input.TagIDs, ","))
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, nil
 }

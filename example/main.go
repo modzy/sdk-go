@@ -37,7 +37,8 @@ func main() {
 	// getMinimumEngines(client)
 	// getJobFeatures(client)
 	// listModels(client)
-	getTags(client)
+	// getTags(client)
+	getTagModels(client, []string{"time_series", "equipment_and_machinery"})
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -223,5 +224,15 @@ func getTags(client modzy.Client) {
 		logrus.WithError(err).Fatalf("Failed to get tags")
 	} else {
 		logrus.Infof("Found %d tags", len(out.Tags))
+	}
+}
+
+func getTagModels(client modzy.Client, tagIDs []string) {
+	ctx := context.TODO()
+	out, err := client.Models().GetTagModels(ctx, &modzy.GetTagModelsInput{TagIDs: tagIDs})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get tag models")
+	} else {
+		logrus.Infof("Found %d tags and %d matching models", len(out.Tags), len(out.Models))
 	}
 }
