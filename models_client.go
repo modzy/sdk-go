@@ -11,8 +11,7 @@ type ModelsClient interface {
 	// GET:/models
 	// ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
 
-	// GET:/models/processing-engines
-	// ListMinimumEngines(ctx context.Context, input *ListMinimumEnginesInput) (*ListMinimumEnginesOutput, error)
+	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
 
 	// PATCH:/models/{model_id}/versions/{version}
 	// PATCH:/models/{model_id}/versions/{version}/processing (for admin?)
@@ -58,6 +57,19 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 	}
 
 	return &GetModelVersionDetailsOutput{
+		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error) {
+	var out model.MinimumEngines
+	url := fmt.Sprintf("/api/models/processing-engines")
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetMinimumEnginesOutput{
 		Details: out,
 	}, nil
 }

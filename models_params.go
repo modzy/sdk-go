@@ -23,6 +23,10 @@ type GetModelDetailsOutput struct {
 	Details model.ModelDetails `json:"details"`
 }
 
+type GetMinimumEnginesOutput struct {
+	Details model.MinimumEngines `json:"details"`
+}
+
 type GetRelatedModelsInput struct {
 	ModelID string
 }

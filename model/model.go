@@ -138,3 +138,7 @@ type RelatedModel struct {
 	Tags          []ModelTag      `json:"tags"`
 	Images        []ModelImage    `json:"images"`
 }
+
+type MinimumEngines struct {
+	MinimumProcessingEnginesSum int `json:"minimumProcessingEnginesSum"`
+}
