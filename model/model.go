@@ -103,3 +103,7 @@ type ModelDetails struct {
 	PerformanceSummary    string              `json:"performanceSummary"`
 	Model                 ModelMetdata        `json:"model"`
 }
+
+type MinimumEngines struct {
+	MinimumProcessingEnginesSum int `json:"minimumProcessingEnginesSum"`
+}

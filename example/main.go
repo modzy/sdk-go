@@ -12,6 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	ctx = context.TODO()
+)
+
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
@@ -20,7 +24,7 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
 	}
 
 	// listJobs(client, false)
@@ -28,11 +32,11 @@ func main() {
 	// errorChecking()
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
-	describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	getMinimumEngines(client)
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
-// 	ctx := context.TODO()
 
 // 	logrus.Info("Will list jobs")
 
@@ -71,8 +75,6 @@ func main() {
 // }
 
 func listJobsHistory(client modzy.Client) {
-	ctx := context.TODO()
-
 	logrus.Info("Will list job histories")
 
 	// This will read the list of job histories, and continue paging until complete
@@ -96,8 +98,6 @@ func listJobsHistory(client modzy.Client) {
 }
 
 func errorChecking() {
-	ctx := context.TODO()
-
 	logrus.Info("Will make a call with an unauthenticated client")
 
 	// no api key is provided
@@ -120,8 +120,6 @@ func errorChecking() {
 }
 
 func submitExampleText(client modzy.Client, cancel bool) {
-	ctx := context.TODO()
-
 	logrus.Info("Will submit example text job")
 	submittedJob, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 		ModelIdentifier: "ed542963de",
@@ -175,8 +173,6 @@ func submitExampleText(client modzy.Client, cancel bool) {
 }
 
 func describeJob(client modzy.Client, jobIdentifier string) {
-	ctx := context.TODO()
-
 	actions := client.Jobs().NewJobActions(jobIdentifier)
 	jobResults, err := actions.GetResults(ctx)
 	if err != nil {
@@ -197,4 +193,12 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 		enc.SetIndent("", "    ")
 		_ = enc.Encode(modelDetails)
 	}
+}
+
+func getMinimumEngines(client modzy.Client) {
+	out, err := client.Models().GetMinimumEngines(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get minimum engines")
+	}
+	logrus.Infof("Minimum engines: %d", out.Details.MinimumProcessingEnginesSum)
 }

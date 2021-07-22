@@ -14,3 +14,7 @@ type GetModelVersionDetailsInput struct {
 type GetModelVersionDetailsOutput struct {
 	Details model.ModelDetails `json:"details"`
 }
+
+type GetMinimumEnginesOutput struct {
+	Details model.MinimumEngines `json:"details"`
+}
