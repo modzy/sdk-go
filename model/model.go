@@ -103,3 +103,18 @@ type ModelDetails struct {
 	PerformanceSummary    string              `json:"performanceSummary"`
 	Model                 ModelMetdata        `json:"model"`
 }
+
+type RelatedModel struct {
+	ID            string          `json:"identifier"`
+	LatestVersion string          `json:"latestVersion"`
+	Versions      []string        `json:"versions"`
+	Author        string          `json:"author"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	Permalink     string          `json:"permalink"`
+	Features      json.RawMessage `json:"features"`
+	IsActive      bool            `json:"isActive"`
+	IsRecommended bool            `json:"isRecommended"`
+	Tags          []ModelTag      `json:"tags"`
+	Images        []ModelImage    `json:"images"`
+}
