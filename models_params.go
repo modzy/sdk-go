@@ -6,11 +6,19 @@ import (
 
 // GetModelVersionDetailsInput -
 type GetModelVersionDetailsInput struct {
-	Identifier string
-	Version    string
+	ModelID string
+	Version string
 }
 
 // GetModelVersionDetailsOutput -
 type GetModelVersionDetailsOutput struct {
+	Details model.ModelVersionDetails `json:"details"`
+}
+
+type GetModelDetailsInput struct {
+	ModelID string
+}
+
+type GetModelDetailsOutput struct {
 	Details model.ModelDetails `json:"details"`
 }

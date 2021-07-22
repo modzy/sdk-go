@@ -61,7 +61,7 @@ type ModelVisibility struct {
 }
 
 type ModelMetdata struct {
-	ID                 string          `json:"modelID"`
+	ModelID            string          `json:"modelID"`
 	LatestVersion      string          `json:"latestVersion"`
 	Versions           []string        `json:"versions"`
 	Author             string          `json:"author"`
@@ -79,7 +79,7 @@ type ModelMetdata struct {
 	Visibility         ModelVisibility `json:"visibility"`
 }
 
-type ModelDetails struct {
+type ModelVersionDetails struct {
 	Identifier            string              `json:"-"`
 	Version               string              `json:"version"`
 	CreatedAt             ModzyTime           `json:"createdAt"`
@@ -102,4 +102,24 @@ type ModelDetails struct {
 	Status                string              `json:"status"`
 	PerformanceSummary    string              `json:"performanceSummary"`
 	Model                 ModelMetdata        `json:"model"`
+}
+
+type ModelDetails struct {
+	ModelID             string          `json:"modelID"`
+	LatestVersion       string          `json:"latestVersion"`
+	LatestActiveVersion string          `json:"latestActiveVersion"`
+	Versions            []string        `json:"versions"`
+	Author              string          `json:"author"`
+	Name                string          `json:"name"`
+	Description         string          `json:"description"`
+	Permalink           string          `json:"permalink"`
+	Features            json.RawMessage `json:"features"`
+	IsActive            bool            `json:"isActive"`
+	IsRecommended       bool            `json:"isRecommended"`
+	IsCommercial        bool            `json:"isCommercial"`
+	Tags                []ModelTag      `json:"tags"`
+	Images              []ModelImage    `json:"images"`
+	SnapshotImages      json.RawMessage `json:"snapshotImages"`
+	LastActiveDateTime  ModzyTime       `json:"lastActiveDateTime"`
+	Visibility          ModelVisibility `json:"visibility"`
 }
