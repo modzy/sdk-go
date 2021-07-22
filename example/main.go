@@ -27,7 +27,6 @@ func main() {
 		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
 	}
 
-	// listJobs(client, false)
 	// listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
