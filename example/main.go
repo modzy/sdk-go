@@ -29,7 +29,8 @@ func main() {
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
-	GetJobFeatures(client)
+	// getJobFeatures(client)
+	listModels(client)
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
@@ -200,7 +201,7 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 	}
 }
 
-func GetJobFeatures(client modzy.Client) {
+func getJobFeatures(client modzy.Client) {
 	ctx := context.TODO()
 	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
 	if err != nil {
@@ -208,4 +209,17 @@ func GetJobFeatures(client modzy.Client) {
 		return
 	}
 	logrus.Infof("Features: %+v", out.Features)
+}
+
+func listModels(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Models().ListModels(ctx, (&modzy.ListModelsInput{}).
+		WithFilterAnd(modzy.ListModelsFilterFieldAuthor, "modzy").
+		WithFilterAnd(modzy.ListModelsFilterFieldIsActive, "false"),
+	)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list imodels")
+		return
+	}
+	logrus.Infof("Models: %+v", out.Models)
 }

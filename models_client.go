@@ -8,8 +8,7 @@ import (
 )
 
 type ModelsClient interface {
-	// GET:/models
-	// ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
+	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
 
 	// GET:/models/processing-engines
 	// ListMinimumEngines(ctx context.Context, input *ListMinimumEnginesInput) (*ListMinimumEnginesOutput, error)
@@ -63,4 +62,28 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 		Details: out,
 	}, nil
 
+}
+
+func (c *standardModelsClient) ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error) {
+	input.Paging = input.Paging.withDefaults()
+
+	var items []model.ModelVersionSummary
+	url := "/api/models"
+	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	// decide if we have a next page (the next link is not always accurate?)
+	var nextPage *ListModelsInput
+	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
+		nextPage = &ListModelsInput{
+			Paging: input.Paging.Next(),
+		}
+	}
+
+	return &ListModelsOutput{
+		Models:   items,
+		NextPage: nextPage,
+	}, nil
 }
