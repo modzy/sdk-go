@@ -63,7 +63,6 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 	}, nil
 }
 
-// GET:/models/processing-engines
 func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error) {
 	var out model.MinimumEngines
 	url := fmt.Sprintf("/api/models/processing-engines")
