@@ -12,6 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	ctx = context.TODO()
+)
+
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
@@ -20,7 +24,7 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
 	}
 
 	// listJobs(client, false)
@@ -29,51 +33,13 @@ func main() {
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
-	GetJobFeatures(client)
+	// describeModel(client, "ed542963de")
+	// getRelatedModels(client, "ed542963de")
+	// getMinimumEngines(client)
+	getJobFeatures(client)
 }
 
-// func listJobs(client modzy.Client, outputDetails bool) {
-// 	ctx := context.TODO()
-
-// 	logrus.Info("Will list jobs")
-
-// 	// This will read the list of jobs, and continue paging until complete
-// 	listJobsInput := (&modzy.ListJobsInput{}).
-// 		WithPaging(2, 1)
-
-// 	for listJobsInput != nil {
-// 		listJobsOut, err := client.Jobs().ListJobs(ctx, listJobsInput)
-// 		if err != nil {
-// 			logrus.WithError(err).Fatalf("Failed to read jobs")
-// 			return
-// 		}
-
-// 		logrus.Infof("Found %d jobs", len(listJobsOut.Jobs))
-
-// 		if outputDetails {
-// 			for _, job := range listJobsOut.Jobs {
-// 				logrus.Infof("- Job: [%s] %s", job.Status, job.JobIdentifier)
-
-// 				jobDetails, err := client.Jobs().GetJobDetails(ctx, &modzy.GetJobDetailsInput{
-// 					JobIdentifier: job.JobIdentifier,
-// 				})
-// 				if err != nil {
-// 					logrus.WithError(err).Fatalf("Failed to read job details: %s", job.JobIdentifier)
-// 					return
-// 				}
-// 				logrus.Infof("  - Model Name: %s", jobDetails.Details.Model.Name)
-// 				logrus.Infof("  - Completed: %d", jobDetails.Details.Completed)
-// 			}
-// 		}
-
-// 		// read the next page
-// 		listJobsInput = listJobsOut.NextPage
-// 	}
-// }
-
 func listJobsHistory(client modzy.Client) {
-	ctx := context.TODO()
-
 	logrus.Info("Will list job histories")
 
 	// This will read the list of job histories, and continue paging until complete
@@ -97,8 +63,6 @@ func listJobsHistory(client modzy.Client) {
 }
 
 func errorChecking() {
-	ctx := context.TODO()
-
 	logrus.Info("Will make a call with an unauthenticated client")
 
 	// no api key is provided
@@ -121,8 +85,6 @@ func errorChecking() {
 }
 
 func submitExampleText(client modzy.Client, cancel bool) {
-	ctx := context.TODO()
-
 	logrus.Info("Will submit example text job")
 	submittedJob, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 		ModelIdentifier: "ed542963de",
@@ -176,8 +138,6 @@ func submitExampleText(client modzy.Client, cancel bool) {
 }
 
 func describeJob(client modzy.Client, jobIdentifier string) {
-	ctx := context.TODO()
-
 	actions := client.Jobs().NewJobActions(jobIdentifier)
 	jobResults, err := actions.GetResults(ctx)
 	if err != nil {
@@ -200,7 +160,7 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 	}
 }
 
-func GetJobFeatures(client modzy.Client) {
+func getJobFeatures(client modzy.Client) {
 	ctx := context.TODO()
 	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
 	if err != nil {
@@ -208,4 +168,36 @@ func GetJobFeatures(client modzy.Client) {
 		return
 	}
 	logrus.Infof("Features: %+v", out.Features)
+}
+
+func getMinimumEngines(client modzy.Client) {
+	out, err := client.Models().GetMinimumEngines(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get minimum engines")
+	}
+	logrus.Infof("Minimum engines: %d", out.Details.MinimumProcessingEnginesSum)
+}
+
+func describeModel(client modzy.Client, modelID string) {
+	ctx := context.TODO()
+
+	out, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: modelID})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details for %s", modelID)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(out)
+	}
+}
+
+func getRelatedModels(client modzy.Client, modelID string) {
+	ctx := context.TODO()
+	out, err := client.Models().GetRelatedModels(ctx, &modzy.GetRelatedModelsInput{ModelID: modelID})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get related models")
+	} else {
+		logrus.Infof("Found %d related models", len(out.RelatedModels))
+	}
 }
