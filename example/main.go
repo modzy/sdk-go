@@ -28,7 +28,8 @@ func main() {
 	// errorChecking()
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
-	describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	getRelatedModels(client, "ed542963de")
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
@@ -196,5 +197,15 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 		enc := json.NewEncoder(logrus.StandardLogger().Out)
 		enc.SetIndent("", "    ")
 		_ = enc.Encode(modelDetails)
+	}
+}
+
+func getRelatedModels(client modzy.Client, modelID string) {
+	ctx := context.TODO()
+	out, err := client.Models().GetRelatedModels(ctx, &modzy.GetRelatedModelsInput{ModelID: modelID})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get related models")
+	} else {
+		logrus.Infof("Found %d related models", len(out.RelatedModels))
 	}
 }
