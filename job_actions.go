@@ -55,7 +55,7 @@ func (j *standardJobActions) GetModelDetails(ctx context.Context) (*GetModelVers
 		return nil, err
 	}
 	return j.client.Models().GetModelVersionDetails(ctx, &GetModelVersionDetailsInput{
-		Identifier: jobDetails.Details.Model.Identifier,
-		Version:    jobDetails.Details.Model.Version,
+		ModelID: jobDetails.Details.Model.Identifier,
+		Version: jobDetails.Details.Model.Version,
 	})
 }

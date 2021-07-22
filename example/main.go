@@ -33,6 +33,8 @@ func main() {
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	// describeModel(client, "ed542963de")
+	// getRelatedModels(client, "ed542963de")
 	getMinimumEngines(client)
 }
 
@@ -201,4 +203,28 @@ func getMinimumEngines(client modzy.Client) {
 		logrus.WithError(err).Fatalf("Failed to get minimum engines")
 	}
 	logrus.Infof("Minimum engines: %d", out.Details.MinimumProcessingEnginesSum)
+}
+
+func describeModel(client modzy.Client, modelID string) {
+	ctx := context.TODO()
+
+	out, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: modelID})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details for %s", modelID)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(out)
+	}
+}
+
+func getRelatedModels(client modzy.Client, modelID string) {
+	ctx := context.TODO()
+	out, err := client.Models().GetRelatedModels(ctx, &modzy.GetRelatedModelsInput{ModelID: modelID})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get related models")
+	} else {
+		logrus.Infof("Found %d related models", len(out.RelatedModels))
+	}
 }

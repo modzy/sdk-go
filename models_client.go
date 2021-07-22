@@ -17,14 +17,12 @@ type ModelsClient interface {
 	// PATCH:/models/{model_id}/versions/{version}/processing (for admin?)
 	// UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
 
-	// GET:/models/{model_id}
-	// GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
+	GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
 
 	// ListModels{name:} -> GetModelDetails(result[0])
 	// GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
 
-	// GET:/models/{model_id}/related-models
-	// ListRelatedModels(ctx context.Context, input *ListRelatedModelsInput) (*ListRelatedModelsOutput, error)
+	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
 
 	// GET:/models/{model_id}/versions
 	// ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
@@ -51,8 +49,8 @@ type standardModelsClient struct {
 var _ ModelsClient = &standardModelsClient{}
 
 func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error) {
-	var out model.ModelDetails
-	url := fmt.Sprintf("/api/models/%s/versions/%s", input.Identifier, input.Version)
+	var out model.ModelVersionDetails
+	url := fmt.Sprintf("/api/models/%s/versions/%s", input.ModelID, input.Version)
 	_, err := c.baseClient.requestor.get(ctx, url, &out)
 	if err != nil {
 		return nil, err
@@ -73,5 +71,31 @@ func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinim
 
 	return &GetMinimumEnginesOutput{
 		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error) {
+	var out model.ModelDetails
+	url := fmt.Sprintf("/api/models/%s", input.ModelID)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetModelDetailsOutput{
+		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error) {
+	var out []model.RelatedModel
+	url := fmt.Sprintf("/api/models/%s/related-models", input.ModelID)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetRelatedModelsOutput{
+		RelatedModels: out,
 	}, nil
 }
