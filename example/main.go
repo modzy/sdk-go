@@ -24,7 +24,7 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
 	}
 
 	// listJobsHistory(client)
@@ -35,8 +35,9 @@ func main() {
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
 	// getMinimumEngines(client)
-	getJobFeatures(client)
-	listModels(client)
+	// getJobFeatures(client)
+	// listModels(client)
+	getTags(client)
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -213,4 +214,14 @@ func listModels(client modzy.Client) {
 		return
 	}
 	logrus.Infof("Models: %+v", out.Models)
+}
+
+func getTags(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Models().GetTags(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get tags")
+	} else {
+		logrus.Infof("Found %d tags", len(out.Tags))
+	}
 }

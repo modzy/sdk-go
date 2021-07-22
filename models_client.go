@@ -9,7 +9,6 @@ import (
 
 type ModelsClient interface {
 	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
-
 	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
 
 	// PATCH:/models/{model_id}/versions/{version}
@@ -34,11 +33,9 @@ type ModelsClient interface {
 	// GET:/models/{model_id}/versions/{version}/sample-output
 	// GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
 
-	// GET:/models/tags
-	// ListTags(ctx context.Context, input *ListTagsInput) (*ListTagsOutput, error)
+	GetTags(ctx context.Context) (*GetTagsOutput, error)
 
-	// GET:/models/tags/{tagId}[,{tagId},...]
-	// ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsModelsOutput, error)
+	ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsOutput, error)
 }
 
 type standardModelsClient struct {
@@ -121,4 +118,22 @@ func (c *standardModelsClient) ListModels(ctx context.Context, input *ListModels
 		Models:   items,
 		NextPage: nextPage,
 	}, nil
+}
+
+func (c *standardModelsClient) GetTags(ctx context.Context) (*GetTagsOutput, error) {
+	var items []model.ModelTag
+	url := "/api/models/tags"
+	_, err := c.baseClient.requestor.get(ctx, url, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetTagsOutput{
+		Tags: items,
+	}, nil
+}
+
+func (c *standardModelsClient) ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsOutput, error) {
+	// GET:/models/tags/{tagId}[,{tagId},...]
+	return nil, nil
 }

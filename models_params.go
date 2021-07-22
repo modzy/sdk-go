@@ -72,3 +72,13 @@ type ListModelsOutput struct {
 	Models   []model.ModelVersionSummary `json:"models"`
 	NextPage *ListModelsInput            `json:"nextPage"`
 }
+
+type GetTagsInput struct{}
+
+type GetTagsOutput struct {
+	Tags []model.ModelTag `json:"tags"`
+}
+
+type ListTagModelsInput struct{}
+
+type ListTagModelsOutput struct{}
