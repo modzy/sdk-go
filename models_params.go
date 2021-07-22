@@ -4,13 +4,13 @@ import (
 	"github.com/modzy/go-sdk/model"
 )
 
-// GetModelDetailsInput -
-type GetModelDetailsInput struct {
+// GetModelVersionDetailsInput -
+type GetModelVersionDetailsInput struct {
 	Identifier string
 	Version    string
 }
 
-// GetModelDetailsOutput -
-type GetModelDetailsOutput struct {
+// GetModelVersionDetailsOutput -
+type GetModelVersionDetailsOutput struct {
 	Details model.ModelDetails `json:"details"`
 }
