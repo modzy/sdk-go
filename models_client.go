@@ -23,8 +23,7 @@ type ModelsClient interface {
 	// ListModels{name:} -> GetModelDetails(result[0])
 	// GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
 
-	// GET:/models/{model_id}/related-models
-	// ListRelatedModels(ctx context.Context, input *ListRelatedModelsInput) (*ListRelatedModelsOutput, error)
+	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
 
 	// GET:/models/{model_id}/versions
 	// ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
@@ -73,5 +72,18 @@ func (c *standardModelsClient) GetModelDetails(ctx context.Context, input *GetMo
 
 	return &GetModelDetailsOutput{
 		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error) {
+	var out []model.RelatedModel
+	url := fmt.Sprintf("/api/models/%s/related-models", input.ModelID)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetRelatedModelsOutput{
+		RelatedModels: out,
 	}, nil
 }

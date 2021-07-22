@@ -22,3 +22,11 @@ type GetModelDetailsInput struct {
 type GetModelDetailsOutput struct {
 	Details model.ModelDetails `json:"details"`
 }
+
+type GetRelatedModelsInput struct {
+	ModelID string
+}
+
+type GetRelatedModelsOutput struct {
+	RelatedModels []model.RelatedModel `json:"relatedModels"`
+}
