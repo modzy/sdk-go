@@ -4,6 +4,12 @@ import (
 	"encoding/json"
 )
 
+type ModelVersionSummary struct {
+	ID            string   `json:"modelId"`
+	LatestVersion string   `json:"latestVersion"`
+	Versions      []string `json:"versions"`
+}
+
 type ModelDetailsTimeout struct {
 	Status int `json:"status"`
 	Run    int `json:"run"`
@@ -61,7 +67,7 @@ type ModelVisibility struct {
 }
 
 type ModelMetdata struct {
-	ModelID            string          `json:"modelID"`
+	ModelID            string          `json:"modelId"`
 	LatestVersion      string          `json:"latestVersion"`
 	Versions           []string        `json:"versions"`
 	Author             string          `json:"author"`
@@ -80,7 +86,7 @@ type ModelMetdata struct {
 }
 
 type ModelVersionDetails struct {
-	Identifier            string              `json:"-"`
+	ModelID               string              `json:"-"`
 	Version               string              `json:"version"`
 	CreatedAt             ModzyTime           `json:"createdAt"`
 	UpdatedAt             ModzyTime           `json:"updatedAt"`
@@ -125,7 +131,7 @@ type ModelDetails struct {
 }
 
 type RelatedModel struct {
-	ID            string          `json:"identifier"`
+	ModelID       string          `json:"identifier"`
 	LatestVersion string          `json:"latestVersion"`
 	Versions      []string        `json:"versions"`
 	Author        string          `json:"author"`

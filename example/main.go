@@ -37,6 +37,7 @@ func main() {
 	// getRelatedModels(client, "ed542963de")
 	// getMinimumEngines(client)
 	getJobFeatures(client)
+	listModels(client)
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -200,4 +201,17 @@ func getRelatedModels(client modzy.Client, modelID string) {
 	} else {
 		logrus.Infof("Found %d related models", len(out.RelatedModels))
 	}
+}
+
+func listModels(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Models().ListModels(ctx, (&modzy.ListModelsInput{}).
+		WithFilterAnd(modzy.ListModelsFilterFieldAuthor, "modzy").
+		WithFilterAnd(modzy.ListModelsFilterFieldIsActive, "false"),
+	)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list imodels")
+		return
+	}
+	logrus.Infof("Models: %+v", out.Models)
 }
