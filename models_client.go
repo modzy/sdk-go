@@ -17,15 +17,9 @@ type ModelsClient interface {
 	// UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
 
 	GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
-
-	// ListModels{name:} -> GetModelDetails(result[0])
-	// GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
-
+	GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
+	ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
 	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
-
-	// GET:/models/{model_id}/versions
-	// ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
-
 	GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error)
 
 	// GET:/models/{model_id}/versions/{version}/sample-input
@@ -142,4 +136,42 @@ func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagMo
 	}
 
 	return &out, nil
+}
+
+func (c *standardModelsClient) GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error) {
+	models, err := c.ListModels(ctx, (&ListModelsInput{}).
+		WithPaging(1, 1).
+		WithFilterAnd(ListModelsFilterFieldName, input.Name),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(models.Models) != 1 {
+		return nil, ErrNotFound
+	}
+	return c.GetModelDetails(ctx, &GetModelDetailsInput{ModelID: models.Models[0].ID})
+}
+
+func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error) {
+	input.Paging = input.Paging.withDefaults()
+
+	var items []model.ModelVersion
+	url := fmt.Sprintf("/api/models/%s/versions", input.ModelID)
+	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	// decide if we have a next page (the next link is not always accurate?)
+	var nextPage *ListModelsInput
+	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
+		nextPage = &ListModelsInput{
+			Paging: input.Paging.Next(),
+		}
+	}
+
+	return &ListModelVersionsOutput{
+		Versions: items,
+		NextPage: nextPage,
+	}, nil
 }

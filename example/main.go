@@ -24,7 +24,7 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
 	}
 
 	// listJobsHistory(client)
@@ -38,7 +38,9 @@ func main() {
 	// getJobFeatures(client)
 	// listModels(client)
 	// getTags(client)
-	getTagModels(client, []string{"time_series", "equipment_and_machinery"})
+	// getTagModels(client, []string{"time_series", "equipment_and_machinery"})
+	// describeModelByName(client, "Sentiment Analysis")
+	listModelVersions(client, "ed542963de")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -235,4 +237,29 @@ func getTagModels(client modzy.Client, tagIDs []string) {
 	} else {
 		logrus.Infof("Found %d tags and %d matching models", len(out.Tags), len(out.Models))
 	}
+}
+
+func describeModelByName(client modzy.Client, name string) {
+	out, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{
+		Name: name,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details by name %s", name)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(out)
+	}
+}
+
+func listModelVersions(client modzy.Client, modelID string) {
+	out, err := client.Models().ListModelVersions(ctx, (&modzy.ListModelVersionsInput{
+		ModelID: modelID,
+	}))
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list model verions")
+		return
+	}
+	logrus.Infof("Found %d versions for model %s", len(out.Versions), modelID)
 }

@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 )
 
+type ModelVersion struct {
+	Version string `json:"version"`
+}
+
 type ModelVersionSummary struct {
 	ID            string   `json:"modelId"`
 	LatestVersion string   `json:"latestVersion"`
