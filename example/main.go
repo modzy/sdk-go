@@ -28,7 +28,8 @@ func main() {
 	// errorChecking()
 	// submitExampleText(client, false)
 	// submitExampleText(client, false)
-	describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
+	GetJobFeatures(client)
 }
 
 // func listJobs(client modzy.Client, outputDetails bool) {
@@ -197,4 +198,14 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 		enc.SetIndent("", "    ")
 		_ = enc.Encode(modelDetails)
 	}
+}
+
+func GetJobFeatures(client modzy.Client) {
+	ctx := context.TODO()
+	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list features")
+		return
+	}
+	logrus.Infof("Features: %+v", out.Features)
 }

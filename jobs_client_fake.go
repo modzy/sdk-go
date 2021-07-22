@@ -15,8 +15,9 @@ type JobsClientFake struct {
 	// SubmitJobFileFunc func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3Func func(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBCFunc func(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
-	CancelJobFunc     func(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
-	GetJobResultsFunc func(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
+	CancelJobFunc      func(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
+	GetJobResultsFunc  func(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
+	GetJobFeaturesFunc func(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error)
 }
 
 var _ JobsClient = &JobsClientFake{}
@@ -52,4 +53,8 @@ func (c *JobsClientFake) CancelJob(ctx context.Context, input *CancelJobInput) (
 
 func (c *JobsClientFake) GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error) {
 	return c.GetJobResultsFunc(ctx, input)
+}
+
+func (c *JobsClientFake) GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error) {
+	return c.GetJobFeaturesFunc(ctx, input)
 }
