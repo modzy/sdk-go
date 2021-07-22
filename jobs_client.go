@@ -33,33 +33,6 @@ func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
 	return NewJobActions(c.baseClient, jobIdentifier)
 }
 
-// func (c *standardJobsClient) ListJobs(ctx context.Context, input *ListJobsInput) (*ListJobsOutput, error) {
-// 	if input == nil {
-// 		return &ListJobsOutput{}, nil
-// 	}
-// 	input.Paging = input.Paging.withDefaults()
-
-// 	var items []model.JobSummary
-// 	url := "/api/jobs"
-// 	_, links, err := c.baseClient.list(ctx, url, input.Paging, &items)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// decide if we have a next page (the next link is not always accurate?)
-// 	var nextPage *ListJobsInput
-// 	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
-// 		nextPage = &ListJobsInput{
-// 			Paging: input.Paging.Next(),
-// 		}
-// 	}
-
-// 	return &ListJobsOutput{
-// 		Jobs:     items,
-// 		NextPage: nextPage,
-// 	}, nil
-// }
-
 func (c *standardJobsClient) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	var out model.JobDetails
 	url := fmt.Sprintf("/api/jobs/%s", input.JobIdentifier)
