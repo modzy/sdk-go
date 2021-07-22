@@ -86,3 +86,22 @@ type JobFeatures struct {
 	MaximumInputChunks    int    `json:"maximumInputChunks"`
 	MaximumInputsPerJob   int    `json:"maximumInputsPerJob"`
 }
+
+type SubmitJobModelInfo struct {
+	Identifier string `json:"identifier"`
+	Version    string `json:"version"`
+}
+
+type TextInputItem map[string]string
+
+type TextInput struct {
+	Type    string                   `json:"type"`
+	Sources map[string]TextInputItem `json:"sources"`
+}
+
+type SubmitTextJob struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
+	Input   TextInput          `json:"input"`
+}

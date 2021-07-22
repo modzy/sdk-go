@@ -2,6 +2,7 @@ package modzy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -27,13 +28,8 @@ type ModelsClient interface {
 	// ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
 
 	GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error)
-
-	// GET:/models/{model_id}/versions/{version}/sample-input
-	// GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
-
-	// GET:/models/{model_id}/versions/{version}/sample-output
-	// GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
-
+	GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
+	GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
 	GetTags(ctx context.Context) (*GetTagsOutput, error)
 	GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error)
 }
@@ -142,4 +138,40 @@ func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagMo
 	}
 
 	return &out, nil
+}
+
+func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error) {
+	var out interface{}
+	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-input", input.ModelID, input.Version)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonB, err := json.Marshal(out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetModelVersionSampleInputOutput{
+		Sample: string(jsonB),
+	}, nil
+}
+
+func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error) {
+	var out interface{}
+	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-output", input.ModelID, input.Version)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonB, err := json.Marshal(out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetModelVersionSampleOutputOutput{
+		Sample: string(jsonB),
+	}, nil
 }
