@@ -3,13 +3,13 @@ package modzy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/modzy/go-sdk/model"
 )
 
 type ModelsClient interface {
 	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
-
 	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
 
 	// PATCH:/models/{model_id}/versions/{version}
@@ -34,11 +34,8 @@ type ModelsClient interface {
 	// GET:/models/{model_id}/versions/{version}/sample-output
 	// GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
 
-	// GET:/models/tags
-	// ListTags(ctx context.Context, input *ListTagsInput) (*ListTagsOutput, error)
-
-	// GET:/models/tags/{tagId}[,{tagId},...]
-	// ListTagModels(ctx context.Context, input *ListTagModelsInput) (*ListTagModelsModelsOutput, error)
+	GetTags(ctx context.Context) (*GetTagsOutput, error)
+	GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error)
 }
 
 type standardModelsClient struct {
@@ -121,4 +118,28 @@ func (c *standardModelsClient) ListModels(ctx context.Context, input *ListModels
 		Models:   items,
 		NextPage: nextPage,
 	}, nil
+}
+
+func (c *standardModelsClient) GetTags(ctx context.Context) (*GetTagsOutput, error) {
+	var items []model.ModelTag
+	url := "/api/models/tags"
+	_, err := c.baseClient.requestor.get(ctx, url, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetTagsOutput{
+		Tags: items,
+	}, nil
+}
+
+func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error) {
+	var out GetTagModelsOutput
+	url := fmt.Sprintf("/api/models/tags/%s", strings.Join(input.TagIDs, ","))
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, nil
 }

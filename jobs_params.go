@@ -16,43 +16,6 @@ type GetJobDetailsOutput struct {
 	Details model.JobDetails `json:"details"`
 }
 
-// // ListJobsInput -
-// type ListJobsInput struct {
-// 	Paging PagingInput
-// }
-
-// type ListJobsFilterField string
-
-// const (
-// 	ListJobsFilterFieldStartDate ListJobsFilterField = "startDate"
-// 	ListJobsFilterFieldEndDate   ListJobsFilterField = "endDate"
-// 	ListJobsFilterFieldStatus    ListJobsFilterField = "status"
-// 	ListJobsFilterFieldModel     ListJobsFilterField = "model"
-// 	ListJobsFilterFieldUser      ListJobsFilterField = "user"
-// 	ListJobsFilterFieldAccessKey ListJobsFilterField = "accessKey" // I see "prefix" in the docs -- what does that mean?
-// )
-
-// func (i *ListJobsInput) WithPaging(perPage int, page int) *ListJobsInput {
-// 	i.Paging = NewPaging(perPage, page)
-// 	return i
-// }
-
-// func (i *ListJobsInput) WithFilterAnd(field ListJobsFilterField, values ...string) *ListJobsInput {
-// 	i.Paging = i.Paging.WithFilter(And(string(field), values...))
-// 	return i
-// }
-
-// func (i *ListJobsInput) WithFilterOr(field ListJobsFilterField, values ...string) *ListJobsInput {
-// 	i.Paging = i.Paging.WithFilter(Or(string(field), values...))
-// 	return i
-// }
-
-// // ListJobsOutput -
-// type ListJobsOutput struct {
-// 	Jobs     []model.JobSummary `json:"jobs"`
-// 	NextPage *ListJobsInput     `json:"nextPage"`
-// }
-
 type ListJobsHistoryInput struct {
 	Paging PagingInput
 }
