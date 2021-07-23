@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -38,7 +39,11 @@ func main() {
 	// getJobFeatures(client)
 	// listModels(client)
 	// getTags(client)
-	getTagModels(client, []string{"time_series", "equipment_and_machinery"})
+	// getTagModels(client, []string{"time_series", "equipment_and_machinery"})
+	// describeModelByName(client, "Sentiment Analysis")
+	// listModelVersions(client, "ed542963de")
+	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
+	getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -163,7 +168,6 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 }
 
 func getJobFeatures(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Jobs().GetJobFeatures(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to list features")
@@ -181,8 +185,6 @@ func getMinimumEngines(client modzy.Client) {
 }
 
 func describeModel(client modzy.Client, modelID string) {
-	ctx := context.TODO()
-
 	out, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: modelID})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get model details for %s", modelID)
@@ -195,7 +197,6 @@ func describeModel(client modzy.Client, modelID string) {
 }
 
 func getRelatedModels(client modzy.Client, modelID string) {
-	ctx := context.TODO()
 	out, err := client.Models().GetRelatedModels(ctx, &modzy.GetRelatedModelsInput{ModelID: modelID})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get related models")
@@ -205,7 +206,6 @@ func getRelatedModels(client modzy.Client, modelID string) {
 }
 
 func listModels(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Models().ListModels(ctx, (&modzy.ListModelsInput{}).
 		WithFilterAnd(modzy.ListModelsFilterFieldAuthor, "modzy").
 		WithFilterAnd(modzy.ListModelsFilterFieldIsActive, "false"),
@@ -218,7 +218,6 @@ func listModels(client modzy.Client) {
 }
 
 func getTags(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Models().GetTags(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get tags")
@@ -228,11 +227,88 @@ func getTags(client modzy.Client) {
 }
 
 func getTagModels(client modzy.Client, tagIDs []string) {
-	ctx := context.TODO()
 	out, err := client.Models().GetTagModels(ctx, &modzy.GetTagModelsInput{TagIDs: tagIDs})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get tag models")
 	} else {
 		logrus.Infof("Found %d tags and %d matching models", len(out.Tags), len(out.Models))
+	}
+}
+
+func describeModelByName(client modzy.Client, name string) {
+	out, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{
+		Name: name,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details by name %s", name)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(out)
+	}
+}
+
+func listModelVersions(client modzy.Client, modelID string) {
+	out, err := client.Models().ListModelVersions(ctx, (&modzy.ListModelVersionsInput{
+		ModelID: modelID,
+	}))
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list model verions")
+		return
+	}
+	logrus.Infof("Found %d versions for model %s", len(out.Versions), modelID)
+}
+
+func getModelSampleInputAndOutput(client modzy.Client, modelID string, version string) {
+	in, err := client.Models().GetModelVersionSampleInput(ctx, &modzy.GetModelVersionSampleInputInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get sample input")
+	} else {
+		logrus.Info("Dumping sample input:")
+		fmt.Fprintln(logrus.StandardLogger().Out, in.Sample)
+	}
+
+	out, err := client.Models().GetModelVersionSampleOutput(ctx, &modzy.GetModelVersionSampleOutputInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get sample output")
+	} else {
+		logrus.Info("Dumping sample outptu:")
+		fmt.Fprintln(logrus.StandardLogger().Out, out.Sample)
+	}
+}
+
+func updateModelProcessingEngines(client modzy.Client, modelID string, version string) {
+	out, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model version")
+		return
+	}
+
+	// let our max change for testing, but don't climb forever
+	newMax := out.Details.Processing.MaximumParallelCapacity + 1
+	if newMax > 2 {
+		newMax = 1
+	}
+
+	newOut, err := client.Models().UpdateModelProcessingEngines(ctx, &modzy.UpdateModelProcessingEnginesInput{
+		ModelID:                 modelID,
+		Version:                 version,
+		MinimumParallelCapacity: out.Details.Processing.MinimumParallelCapacity,
+		MaximumParallelCapacity: newMax,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to patch processing engines")
+	} else {
+		logrus.Infof("Patched processing engines to be: %+v", newOut.Details.Processing)
 	}
 }

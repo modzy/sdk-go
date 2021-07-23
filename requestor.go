@@ -151,6 +151,10 @@ func (r *requestor) Post(ctx context.Context, path string, toPost interface{}, i
 	return r.execute(ctx, path, "POST", toPost, into)
 }
 
+func (r *requestor) Patch(ctx context.Context, path string, toPatch interface{}, into interface{}) (*http.Response, error) {
+	return r.execute(ctx, path, "PATCH", toPatch, into)
+}
+
 func (r *requestor) Delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "DELETE", nil, into)
 }

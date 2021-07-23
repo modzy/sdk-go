@@ -66,26 +66,8 @@ func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJob
 }
 
 func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error) {
-	type modelInfo struct {
-		Identifier string `json:"identifier"`
-		Version    string `json:"version"`
-	}
 
-	type textInputItem map[string]string
-
-	type textInput struct {
-		Type    string                   `json:"type"`
-		Sources map[string]textInputItem `json:"sources"`
-	}
-
-	type payload struct {
-		Model   modelInfo `json:"model"`
-		Explain bool      `json:"explain,omitempty"`
-		Timeout int       `json:"timeout,omitempty"`
-		Input   textInput `json:"input"`
-	}
-
-	toPostSources := map[string]textInputItem{}
+	toPostSources := map[string]model.TextInputItem{}
 	for k, v := range input.Inputs {
 		input := map[string]string{}
 		for innerK, innerV := range v {
@@ -94,14 +76,14 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 		toPostSources[k] = input
 	}
 
-	toPost := payload{
-		Model: modelInfo{
+	toPost := model.SubmitTextJob{
+		Model: model.SubmitJobModelInfo{
 			Identifier: input.ModelIdentifier,
 			Version:    input.ModelVersion,
 		},
 		Explain: input.Explain,
 		Timeout: int(input.Timeout / time.Millisecond),
-		Input: textInput{
+		Input: model.TextInput{
 			Type:    "text",
 			Sources: toPostSources,
 		},
