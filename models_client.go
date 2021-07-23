@@ -12,21 +12,11 @@ import (
 type ModelsClient interface {
 	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
 	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
-
-	// PATCH:/models/{model_id}/versions/{version}
-	// PATCH:/models/{model_id}/versions/{version}/processing (for admin?)
-	// UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
-
+	UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
 	GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
-
-	// ListModels{name:} -> GetModelDetails(result[0])
-	// GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
-
+	GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
+	ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
 	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
-
-	// GET:/models/{model_id}/versions
-	// ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
-
 	GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error)
 	GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
 	GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
@@ -140,6 +130,46 @@ func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagMo
 	return &out, nil
 }
 
+func (c *standardModelsClient) GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error) {
+	models, err := c.ListModels(ctx, (&ListModelsInput{}).
+		WithPaging(1, 1).
+		WithFilterAnd(ListModelsFilterFieldName, input.Name),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(models.Models) != 1 {
+		return nil, ErrNotFound
+	}
+	return c.GetModelDetails(ctx, &GetModelDetailsInput{ModelID: models.Models[0].ID})
+}
+
+func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error) {
+	input.Paging = input.Paging.withDefaults()
+
+	var items []model.ModelVersion
+	url := fmt.Sprintf("/api/models/%s/versions", input.ModelID)
+	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
+
+	var out model.ModelVersionDetails
+	_, err = c.baseClient.requestor.patch(ctx, url, input, &out)
+	if err != nil {
+		return nil, err
+	}
+	// decide if we have a next page (the next link is not always accurate?)
+	var nextPage *ListModelsInput
+	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
+		nextPage = &ListModelsInput{
+			Paging: input.Paging.Next(),
+		}
+	}
+
+	return &ListModelVersionsOutput{
+		Versions: items,
+		NextPage: nextPage,
+	}, nil
+}
+
 func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error) {
 	var out interface{}
 	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-input", input.ModelID, input.Version)
@@ -158,13 +188,27 @@ func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, i
 	}, nil
 }
 
+func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error) {
+	isAdmin, err := c.baseClient.Accounting().HasEntitlement(ctx, "CAN_PATCH_PROCESSING_MODEL_VERSION")
+	url := fmt.Sprintf("/api/models/%s/versions/%s", input.ModelID, input.Version)
+	if isAdmin {
+		url = url + "/processing"
+	}
+
+	var out model.ModelVersionDetails
+	_, err = c.baseClient.requestor.patch(ctx, url, input, &out)
+	if err != nil {
+		return nil, err
+	}
+	return &UpdateModelProcessingEnginesOutput{
+		Details: out,
+	}, nil
+}
+
 func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error) {
 	var out interface{}
 	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-output", input.ModelID, input.Version)
 	_, err := c.baseClient.requestor.get(ctx, url, &out)
-	if err != nil {
-		return nil, err
-	}
 
 	jsonB, err := json.Marshal(out)
 	if err != nil {

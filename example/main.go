@@ -40,6 +40,9 @@ func main() {
 	// listModels(client)
 	// getTags(client)
 	// getTagModels(client, []string{"time_series", "equipment_and_machinery"})
+	// describeModelByName(client, "Sentiment Analysis")
+	// listModelVersions(client, "ed542963de")
+	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
 	getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
 }
 
@@ -232,6 +235,31 @@ func getTagModels(client modzy.Client, tagIDs []string) {
 	}
 }
 
+func describeModelByName(client modzy.Client, name string) {
+	out, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{
+		Name: name,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model details by name %s", name)
+	} else {
+		logrus.Info("Dumping model details")
+		enc := json.NewEncoder(logrus.StandardLogger().Out)
+		enc.SetIndent("", "    ")
+		_ = enc.Encode(out)
+	}
+}
+
+func listModelVersions(client modzy.Client, modelID string) {
+	out, err := client.Models().ListModelVersions(ctx, (&modzy.ListModelVersionsInput{
+		ModelID: modelID,
+	}))
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list model verions")
+		return
+	}
+	logrus.Infof("Found %d versions for model %s", len(out.Versions), modelID)
+}
+
 func getModelSampleInputAndOutput(client modzy.Client, modelID string, version string) {
 	in, err := client.Models().GetModelVersionSampleInput(ctx, &modzy.GetModelVersionSampleInputInput{
 		ModelID: modelID,
@@ -253,5 +281,34 @@ func getModelSampleInputAndOutput(client modzy.Client, modelID string, version s
 	} else {
 		logrus.Info("Dumping sample outptu:")
 		fmt.Fprintln(logrus.StandardLogger().Out, out.Sample)
+	}
+}
+
+func updateModelProcessingEngines(client modzy.Client, modelID string, version string) {
+	out, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model version")
+		return
+	}
+
+	// let our max change for testing, but don't climb forever
+	newMax := out.Details.Processing.MaximumParallelCapacity + 1
+	if newMax > 2 {
+		newMax = 1
+	}
+
+	newOut, err := client.Models().UpdateModelProcessingEngines(ctx, &modzy.UpdateModelProcessingEnginesInput{
+		ModelID:                 modelID,
+		Version:                 version,
+		MinimumParallelCapacity: out.Details.Processing.MinimumParallelCapacity,
+		MaximumParallelCapacity: newMax,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to patch processing engines")
+	} else {
+		logrus.Infof("Patched processing engines to be: %+v", newOut.Details.Processing)
 	}
 }

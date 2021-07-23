@@ -9,15 +9,17 @@ type Client interface {
 	WithAPIKey(apiKey string) Client
 	WithTeamKey(teamID string, token string) Client
 	WithOptions(opts ...ClientOption) Client
+	Accounting() AccountingClient
 	Jobs() JobsClient
 	Models() ModelsClient
 	// Tags() TagsClient
 }
 
 type standardClient struct {
-	jobsClient   *standardJobsClient
-	modelsClient *standardModelsClient
-	requestor    *requestor
+	accountingClient *standardAccountingClient
+	jobsClient       *standardJobsClient
+	modelsClient     *standardModelsClient
+	requestor        *requestor
 }
 
 func NewClient(baseURL string, opts ...ClientOption) Client {
@@ -30,6 +32,9 @@ func NewClient(baseURL string, opts ...ClientOption) Client {
 	client.WithOptions(opts...)
 
 	// setup our namespaced groupings that all share this as their base client
+	client.accountingClient = &standardAccountingClient{
+		baseClient: client,
+	}
 	client.jobsClient = &standardJobsClient{
 		baseClient: client,
 	}
@@ -65,6 +70,11 @@ func (c *standardClient) WithOptions(opts ...ClientOption) Client {
 		opt(c)
 	}
 	return c
+}
+
+// Accounting returns a client for access to all accounting related API functions
+func (c *standardClient) Accounting() AccountingClient {
+	return c.accountingClient
 }
 
 // Jobs returns a client for access to all job related API functions
