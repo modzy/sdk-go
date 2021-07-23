@@ -150,12 +150,10 @@ func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *Lis
 	var items []model.ModelVersion
 	url := fmt.Sprintf("/api/models/%s/versions", input.ModelID)
 	_, links, err := c.baseClient.requestor.List(ctx, url, input.Paging, &items)
-
-	var out model.ModelVersionDetails
-	_, err = c.baseClient.requestor.Patch(ctx, url, input, &out)
 	if err != nil {
 		return nil, err
 	}
+
 	// decide if we have a next page (the next link is not always accurate?)
 	var nextPage *ListModelsInput
 	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
@@ -167,24 +165,6 @@ func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *Lis
 	return &ListModelVersionsOutput{
 		Versions: items,
 		NextPage: nextPage,
-	}, nil
-}
-
-func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error) {
-	var out interface{}
-	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-input", input.ModelID, input.Version)
-	_, err := c.baseClient.requestor.Get(ctx, url, &out)
-	if err != nil {
-		return nil, err
-	}
-
-	jsonB, err := json.Marshal(out)
-	if err != nil {
-		return nil, err
-	}
-
-	return &GetModelVersionSampleInputOutput{
-		Sample: string(jsonB),
 	}, nil
 }
 
@@ -205,13 +185,36 @@ func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context,
 	}, nil
 }
 
+func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error) {
+	var out interface{}
+	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-input", input.ModelID, input.Version)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonB, err := json.Marshal(out)
+	if err != nil {
+		// not possible...
+		return nil, err
+	}
+
+	return &GetModelVersionSampleInputOutput{
+		Sample: string(jsonB),
+	}, nil
+}
+
 func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error) {
 	var out interface{}
 	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-output", input.ModelID, input.Version)
 	_, err := c.baseClient.requestor.Get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
 
 	jsonB, err := json.Marshal(out)
 	if err != nil {
+		// not possible...
 		return nil, err
 	}
 

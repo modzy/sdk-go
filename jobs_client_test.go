@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-// TODO: are these type of unit tests worth writing?
-
 func TestGetJobDetailsHTTPError(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
