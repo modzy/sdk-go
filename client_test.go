@@ -7,13 +7,13 @@ import (
 
 func TestClientWithAPIKey(t *testing.T) {
 	c := (&standardClient{
-		requestor: &stdRequestor{},
+		requestor: &requestor{},
 	})
 	c.WithAPIKey("k")
 	req := &http.Request{
 		Header: http.Header{},
 	}
-	decorated := c.requestor.(*stdRequestor).authorizationDecorator(req)
+	decorated := c.requestor.authorizationDecorator(req)
 
 	got := decorated.Header.Get("Authorization")
 	if got != "ApiKey k" {
@@ -23,13 +23,13 @@ func TestClientWithAPIKey(t *testing.T) {
 
 func TestClientWithWithTeamKey(t *testing.T) {
 	c := (&standardClient{
-		requestor: &stdRequestor{},
+		requestor: &requestor{},
 	})
 	c.WithTeamKey("team", "teamKey")
 	req := &http.Request{
 		Header: http.Header{},
 	}
-	decorated := c.requestor.(*stdRequestor).authorizationDecorator(req)
+	decorated := c.requestor.authorizationDecorator(req)
 
 	if decorated.Header.Get("Authorization") != "Bearer teamKey" {
 		t.Errorf("Expected Bearer teamKey, got %s", decorated.Header.Get("Authorization"))
@@ -42,10 +42,10 @@ func TestClientWithWithTeamKey(t *testing.T) {
 
 func TestClientWithOptions(t *testing.T) {
 	c := (&standardClient{
-		requestor: &stdRequestor{},
+		requestor: &requestor{},
 	})
 	c.WithOptions(WithHTTPDebugging(true, false))
-	if c.requestor.(*stdRequestor).requestDebugging != true {
+	if c.requestor.requestDebugging != true {
 		t.Errorf("Expected requestDebugging to be true, was not")
 	}
 }
@@ -53,10 +53,10 @@ func TestClientWithOptions(t *testing.T) {
 func TestNewClient(t *testing.T) {
 	c := NewClient("baseURL", WithHTTPDebugging(true, false))
 	standardC := c.(*standardClient)
-	if standardC.requestor.(*stdRequestor).baseURL != "baseURL" {
+	if standardC.requestor.baseURL != "baseURL" {
 		t.Errorf("baseURL not set")
 	}
-	if standardC.requestor.(*stdRequestor).httpClient != defaultHTTPClient {
+	if standardC.requestor.httpClient != defaultHTTPClient {
 		t.Errorf("default httpClient not set")
 	}
 	if standardC.jobsClient == nil {

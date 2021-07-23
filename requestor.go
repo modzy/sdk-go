@@ -16,16 +16,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type requestor interface {
-	Get(ctx context.Context, path string, into interface{}) (*http.Response, error)
-	List(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error)
-	Post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error)
-	Delete(ctx context.Context, path string, into interface{}) (*http.Response, error)
-}
-
 type requestDecorator func(*http.Request) *http.Request
 
-type stdRequestor struct {
+type requestor struct {
 	baseURL                string
 	authorizationDecorator requestDecorator
 	requestDebugging       bool
@@ -33,9 +26,7 @@ type stdRequestor struct {
 	httpClient             *http.Client
 }
 
-var _ requestor = &stdRequestor{}
-
-func (r *stdRequestor) execute(
+func (r *requestor) execute(
 	ctx context.Context,
 	path string, method string, toPostStruct interface{}, into interface{},
 ) (*http.Response, error) {
@@ -110,11 +101,11 @@ func (r *stdRequestor) execute(
 	return resp, nil
 }
 
-func (r *stdRequestor) Get(ctx context.Context, path string, into interface{}) (*http.Response, error) {
+func (r *requestor) Get(ctx context.Context, path string, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "GET", nil, into)
 }
 
-func (r *stdRequestor) List(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error) {
+func (r *requestor) List(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error) {
 	// append paging information to our url query
 	partialUrl, err := url.Parse(path)
 	if err != nil {
@@ -156,10 +147,10 @@ func (r *stdRequestor) List(ctx context.Context, path string, paging PagingInput
 	return resp, links, err
 }
 
-func (r *stdRequestor) Post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error) {
+func (r *requestor) Post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "POST", toPost, into)
 }
 
-func (r *stdRequestor) Delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
+func (r *requestor) Delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "DELETE", nil, into)
 }

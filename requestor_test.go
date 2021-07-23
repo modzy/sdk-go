@@ -20,7 +20,7 @@ func TestGet(t *testing.T) {
 	}))
 	defer serv.Close()
 
-	requestor := &stdRequestor{
+	requestor := &requestor{
 		baseURL:    serv.URL,
 		httpClient: defaultHTTPClient,
 	}
@@ -48,7 +48,7 @@ func TestList(t *testing.T) {
 	}))
 	defer serv.Close()
 
-	requestor := &stdRequestor{
+	requestor := &requestor{
 		baseURL:    serv.URL,
 		httpClient: defaultHTTPClient,
 	}
@@ -88,7 +88,7 @@ func TestPost(t *testing.T) {
 	}))
 	defer serv.Close()
 
-	requestor := &stdRequestor{
+	requestor := &requestor{
 		baseURL:    serv.URL,
 		httpClient: defaultHTTPClient,
 	}
@@ -116,7 +116,7 @@ func TestDelete(t *testing.T) {
 	}))
 	defer serv.Close()
 
-	requestor := &stdRequestor{
+	requestor := &requestor{
 		baseURL:    serv.URL,
 		httpClient: defaultHTTPClient,
 	}
