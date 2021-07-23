@@ -85,3 +85,21 @@ type GetTagModelsOutput struct {
 	Tags   []model.ModelTag      `json:"tags"`
 	Models []model.ModelWithTags `json:"models"`
 }
+
+type GetModelVersionSampleInputInput struct {
+	ModelID string
+	Version string
+}
+
+type GetModelVersionSampleInputOutput struct {
+	Sample string `json:"sample"`
+}
+
+type GetModelVersionSampleOutputInput struct {
+	ModelID string
+	Version string
+}
+
+type GetModelVersionSampleOutputOutput struct {
+	Sample string `json:"sample"`
+}
