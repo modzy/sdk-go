@@ -47,7 +47,7 @@ var _ ModelsClient = &standardModelsClient{}
 func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error) {
 	var out model.ModelVersionDetails
 	url := fmt.Sprintf("/api/models/%s/versions/%s", input.ModelID, input.Version)
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error) {
 	var out model.MinimumEngines
 	url := fmt.Sprintf("/api/models/processing-engines")
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinim
 func (c *standardModelsClient) GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error) {
 	var out model.ModelDetails
 	url := fmt.Sprintf("/api/models/%s", input.ModelID)
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *standardModelsClient) GetModelDetails(ctx context.Context, input *GetMo
 func (c *standardModelsClient) GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error) {
 	var out []model.RelatedModel
 	url := fmt.Sprintf("/api/models/%s/related-models", input.ModelID)
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (c *standardModelsClient) ListModels(ctx context.Context, input *ListModels
 
 	var items []model.ModelVersionSummary
 	url := "/api/models"
-	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
+	_, links, err := c.baseClient.requestor.List(ctx, url, input.Paging, &items)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (c *standardModelsClient) ListModels(ctx context.Context, input *ListModels
 func (c *standardModelsClient) GetTags(ctx context.Context) (*GetTagsOutput, error) {
 	var items []model.ModelTag
 	url := "/api/models/tags"
-	_, err := c.baseClient.requestor.get(ctx, url, &items)
+	_, err := c.baseClient.requestor.Get(ctx, url, &items)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (c *standardModelsClient) GetTags(ctx context.Context) (*GetTagsOutput, err
 func (c *standardModelsClient) GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error) {
 	var out GetTagModelsOutput
 	url := fmt.Sprintf("/api/models/tags/%s", strings.Join(input.TagIDs, ","))
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}

@@ -17,12 +17,12 @@ type Client interface {
 type standardClient struct {
 	jobsClient   *standardJobsClient
 	modelsClient *standardModelsClient
-	requestor    *requestor
+	requestor    requestor
 }
 
 func NewClient(baseURL string, opts ...ClientOption) Client {
 	var client = &standardClient{
-		requestor: &requestor{
+		requestor: &stdRequestor{
 			baseURL:    baseURL,
 			httpClient: defaultHTTPClient,
 		},
@@ -42,7 +42,7 @@ func NewClient(baseURL string, opts ...ClientOption) Client {
 
 // WithAPIKey -
 func (c *standardClient) WithAPIKey(apiKey string) Client {
-	c.requestor.authorizationDecorator = func(req *http.Request) *http.Request {
+	c.requestor.(*stdRequestor).authorizationDecorator = func(req *http.Request) *http.Request {
 		req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", apiKey))
 		return req
 	}
@@ -51,7 +51,7 @@ func (c *standardClient) WithAPIKey(apiKey string) Client {
 
 // WithTeamKey -
 func (c *standardClient) WithTeamKey(teamID string, token string) Client {
-	c.requestor.authorizationDecorator = func(req *http.Request) *http.Request {
+	c.requestor.(*stdRequestor).authorizationDecorator = func(req *http.Request) *http.Request {
 		req.Header.Add("Modzy-Team-Id", teamID)
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 		return req
