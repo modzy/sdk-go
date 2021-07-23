@@ -9,7 +9,7 @@ type JobsClientFake struct {
 	GetJobDetailsFunc        func(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistoryFunc      func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobTextFunc        func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
-	WaitForJobCompletionFunc func(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
+	WaitForJobCompletionFunc func(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	// SubmitJobEmbeddedFunc func(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	// SubmitJobFileFunc func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3Func func(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
@@ -33,7 +33,7 @@ func (c *JobsClientFake) SubmitJobText(ctx context.Context, input *SubmitJobText
 	return c.SubmitJobTextFunc(ctx, input)
 }
 
-func (c *JobsClientFake) WaitForJobCompletion(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
+func (c *JobsClientFake) WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
 	return c.WaitForJobCompletionFunc(ctx, input, pollInterval)
 }
 

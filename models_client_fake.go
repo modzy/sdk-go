@@ -66,5 +66,5 @@ func (c *ModelsClientFake) GetTags(ctx context.Context) (*GetTagsOutput, error) 
 }
 
 func (c *ModelsClientFake) GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error) {
-	return c.GetTagModels(ctx, input)
+	return c.GetTagModelsFunc(ctx, input)
 }

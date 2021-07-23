@@ -32,7 +32,7 @@ func (j *standardJobActions) GetDetails(ctx context.Context) (*GetJobDetailsOutp
 }
 
 func (j *standardJobActions) WaitForCompletion(ctx context.Context, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
-	return j.client.Jobs().WaitForJobCompletion(ctx, &GetJobDetailsInput{
+	return j.client.Jobs().WaitForJobCompletion(ctx, &WaitForJobCompletionInput{
 		JobIdentifier: j.jobIdentifier,
 	}, pollInterval)
 }

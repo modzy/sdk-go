@@ -194,14 +194,9 @@ func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, i
 	}
 
 	jsonB, err := json.Marshal(out)
-	if err != nil {
-		// not possible...
-		return nil, err
-	}
-
 	return &GetModelVersionSampleInputOutput{
 		Sample: string(jsonB),
-	}, nil
+	}, err
 }
 
 func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error) {
@@ -213,12 +208,7 @@ func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, 
 	}
 
 	jsonB, err := json.Marshal(out)
-	if err != nil {
-		// not possible...
-		return nil, err
-	}
-
 	return &GetModelVersionSampleOutputOutput{
 		Sample: string(jsonB),
-	}, nil
+	}, err
 }

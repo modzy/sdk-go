@@ -12,7 +12,7 @@ type JobsClient interface {
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
-	WaitForJobCompletion(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
+	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	// SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	// SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
@@ -106,7 +106,7 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 // WaitForJobCompletion will wait until the provided job is done processing.
 // The minimum pollInterval is 5 seconds.
 // If the provided context is canceled, this wait will error.
-func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
+func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
 	timer := time.NewTimer(pollInterval)
 
 	for {
@@ -114,7 +114,7 @@ func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *Ge
 		case <-ctx.Done():
 			return nil, fmt.Errorf("Wait for job completion was canceled due to provided context being canceled")
 		case <-timer.C:
-			job, err := c.GetJobDetails(ctx, input)
+			job, err := c.GetJobDetails(ctx, &GetJobDetailsInput{input.JobIdentifier})
 			if err != nil {
 				return nil, err
 			}

@@ -132,6 +132,13 @@ func TestSubmitJobText(t *testing.T) {
 func TestWaitForJobCompletion(t *testing.T) {
 	checked := 0
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("expected method to be GET, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/jobs/waitingOn" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+
 		checked++
 		if checked <= 2 {
 			w.Write([]byte(`{"status": "NOT_DONE"}`))
@@ -140,7 +147,9 @@ func TestWaitForJobCompletion(t *testing.T) {
 		}
 	}))
 	client := NewClient(serv.URL)
-	out, err := client.Jobs().WaitForJobCompletion(context.TODO(), &GetJobDetailsInput{}, time.Millisecond)
+	out, err := client.Jobs().WaitForJobCompletion(context.TODO(), &WaitForJobCompletionInput{
+		JobIdentifier: "waitingOn",
+	}, time.Millisecond)
 	if err != nil {
 		t.Errorf("err not nil: %v", err)
 	}
@@ -159,7 +168,7 @@ func TestWaitForJobCompletionCancelContext(t *testing.T) {
 		w.Write([]byte(`{"status": "NOT_DONE"}`))
 	}))
 	client := NewClient(serv.URL)
-	_, err := client.Jobs().WaitForJobCompletion(ctx, &GetJobDetailsInput{}, time.Hour)
+	_, err := client.Jobs().WaitForJobCompletion(ctx, &WaitForJobCompletionInput{}, time.Hour)
 	if err == nil {
 		t.Errorf("Expected error")
 	}
@@ -173,7 +182,7 @@ func TestWaitForJobCompletionHTTPError(t *testing.T) {
 		w.WriteHeader(500)
 	}))
 	client := NewClient(serv.URL)
-	_, err := client.Jobs().WaitForJobCompletion(context.TODO(), &GetJobDetailsInput{}, time.Millisecond)
+	_, err := client.Jobs().WaitForJobCompletion(context.TODO(), &WaitForJobCompletionInput{}, time.Millisecond)
 	if err == nil {
 		t.Errorf("Expected error")
 	}
