@@ -24,7 +24,7 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, true))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
 	}
 
 	// listJobsHistory(client)
@@ -40,7 +40,8 @@ func main() {
 	// getTags(client)
 	// getTagModels(client, []string{"time_series", "equipment_and_machinery"})
 	// describeModelByName(client, "Sentiment Analysis")
-	listModelVersions(client, "ed542963de")
+	// listModelVersions(client, "ed542963de")
+	updateModelProcessingEngines(client, "ed542963de", "0.0.27")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -262,4 +263,33 @@ func listModelVersions(client modzy.Client, modelID string) {
 		return
 	}
 	logrus.Infof("Found %d versions for model %s", len(out.Versions), modelID)
+}
+
+func updateModelProcessingEngines(client modzy.Client, modelID string, version string) {
+	out, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get model version")
+		return
+	}
+
+	// let our max change for testing, but don't climb forever
+	newMax := out.Details.Processing.MaximumParallelCapacity + 1
+	if newMax > 2 {
+		newMax = 1
+	}
+
+	newOut, err := client.Models().UpdateModelProcessingEngines(ctx, &modzy.UpdateModelProcessingEnginesInput{
+		ModelID:                 modelID,
+		Version:                 version,
+		MinimumParallelCapacity: out.Details.Processing.MinimumParallelCapacity,
+		MaximumParallelCapacity: newMax,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to patch processing engines")
+	} else {
+		logrus.Infof("Patched processing engines to be: %+v", newOut.Details.Processing)
+	}
 }

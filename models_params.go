@@ -128,3 +128,14 @@ type ListModelVersionsOutput struct {
 	Versions []model.ModelVersion `json:"versions"`
 	NextPage *ListModelsInput     `json:"nextPage"`
 }
+
+type UpdateModelProcessingEnginesInput struct {
+	ModelID                 string
+	Version                 string
+	MinimumParallelCapacity int `json:"minimumParallelCapacity"`
+	MaximumParallelCapacity int `json:"maximumParallelCapacity"`
+}
+
+type UpdateModelProcessingEnginesOutput struct {
+	Details model.ModelVersionDetails `json:"details"`
+}

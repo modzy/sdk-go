@@ -5,6 +5,7 @@ type ClientFake struct {
 	WithAPIKeyFunc  func(apiKey string) Client
 	WithTeamKeyFunc func(teamID string, token string) Client
 	WithOptionsFunc func(opts ...ClientOption) Client
+	AccountingFunc  func() AccountingClient
 	JobsFunc        func() JobsClient
 	ModelsFunc      func() ModelsClient
 }
@@ -21,6 +22,10 @@ func (c *ClientFake) WithTeamKey(teamID string, token string) Client {
 
 func (c *ClientFake) WithOptions(opts ...ClientOption) Client {
 	return c.WithOptionsFunc(opts...)
+}
+
+func (c *ClientFake) Accounting() AccountingClient {
+	return c.AccountingFunc()
 }
 
 func (c *ClientFake) Jobs() JobsClient {

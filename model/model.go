@@ -89,29 +89,62 @@ type ModelMetdata struct {
 	Visibility         ModelVisibility `json:"visibility"`
 }
 
+type ModelVersionDetailsInput struct {
+	Name               string `json:"name"`
+	AcceptedMediaTypes string `json:"acceptedMediaTypes"`
+	MaximumSize        int64  `json:"maximumSize"`
+	Description        string `json:"description"`
+}
+
+type ModelVersionDetailsOutput struct {
+	Name        string `json:"name"`
+	MediaType   string `json:"mediaTypes"`
+	MaximumSize int64  `json:"maximumSize"`
+	Description string `json:"description"`
+}
+
+type ModelVersionDetailsStatistic struct {
+	Label       string  `json:"label"`
+	Category    string  `json:"category"`
+	Type        string  `json:"type"`
+	Description string  `json:"description"`
+	Highlight   bool    `json:"highlight"`
+	Order       int     `json:"order"`
+	Value       float64 `json:"value"`
+}
+
+type ModelVersionDetailsProcessing struct {
+	MinimumParallelCapacity int `json:"minimumParallelCapacity"`
+	MaximumParallelCapacity int `json:"maximumParallelCapacity"`
+}
+
 type ModelVersionDetails struct {
-	ModelID               string              `json:"-"`
-	Version               string              `json:"version"`
-	CreatedAt             ModzyTime           `json:"createdAt"`
-	UpdatedAt             ModzyTime           `json:"updatedAt"`
-	InputValidationSchema json.RawMessage     `json:"inputValidationSchema"`
-	Timeout               ModelDetailsTimeout `json:"timeout"`
-	Requirement           json.RawMessage     `json:"requirement"`
-	ContainerImage        ModelContainerImage `json:"containerImage"`
-	LoadStatus            ModelLoadStatus     `json:"loadStatus"`
-	RunStatus             ModelRunStatus      `json:"runStatus"`
-	Inputs                []json.RawMessage   `json:"inputs"`
-	Outputs               []json.RawMessage   `json:"outputs"`
-	Statistics            []json.RawMessage   `json:"statistics"`
-	IsActive              bool                `json:"isActive"`
-	LongDescription       string              `json:"longDescription"`
-	TechnicalDetails      string              `json:"technicalDetails"`
-	IsAvailable           bool                `json:"isAvailable"`
-	SourceType            string              `json:"sourceType"`
-	VersionHistory        string              `json:"versionHistory"`
-	Status                string              `json:"status"`
-	PerformanceSummary    string              `json:"performanceSummary"`
-	Model                 ModelMetdata        `json:"model"`
+	ModelID               string                         `json:"-"`
+	Version               string                         `json:"version"`
+	CreatedAt             ModzyTime                      `json:"createdAt"`
+	UpdatedAt             ModzyTime                      `json:"updatedAt"`
+	InputValidationSchema json.RawMessage                `json:"inputValidationSchema"`
+	Timeout               ModelDetailsTimeout            `json:"timeout"`
+	Requirement           json.RawMessage                `json:"requirement"`
+	ContainerImage        ModelContainerImage            `json:"containerImage"`
+	LoadStatus            ModelLoadStatus                `json:"loadStatus"`
+	RunStatus             ModelRunStatus                 `json:"runStatus"`
+	Inputs                []ModelVersionDetailsInput     `json:"inputs"`
+	SampleInput           string                         `json:"sampleInput"`
+	Outputs               []ModelVersionDetailsOutput    `json:"outputs"`
+	SampleOutput          string                         `json:"sampleOutput"`
+	Statistics            []ModelVersionDetailsStatistic `json:"statistics"`
+	IsActive              bool                           `json:"isActive"`
+	LongDescription       string                         `json:"longDescription"`
+	TechnicalDetails      string                         `json:"technicalDetails"`
+	ImagePrefix           string                         `json:"imagePrefix"`
+	IsAvailable           bool                           `json:"isAvailable"`
+	SourceType            string                         `json:"sourceType"`
+	VersionHistory        string                         `json:"versionHistory"`
+	Status                string                         `json:"status"`
+	PerformanceSummary    string                         `json:"performanceSummary"`
+	Model                 ModelMetdata                   `json:"model"`
+	Processing            ModelVersionDetailsProcessing  `json:"processing"`
 }
 
 type ModelDetails struct {
