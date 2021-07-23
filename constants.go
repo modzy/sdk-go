@@ -23,7 +23,3 @@ const (
 	JobStatusCanceled   = "CANCELED"
 	JobStatusTimedOut   = "TIMEDOUT"
 )
-
-const (
-	MinimumWaitForJobInterval = time.Second * 5
-)

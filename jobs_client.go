@@ -107,10 +107,6 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 // The minimum pollInterval is 5 seconds.
 // If the provided context is canceled, this wait will error.
 func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
-	if pollInterval < MinimumWaitForJobInterval {
-		pollInterval = MinimumWaitForJobInterval
-	}
-
 	timer := time.NewTimer(pollInterval)
 
 	for {
