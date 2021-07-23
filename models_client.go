@@ -2,6 +2,7 @@ package modzy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -17,13 +18,8 @@ type ModelsClient interface {
 	ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
 	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
 	GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error)
-
-	// GET:/models/{model_id}/versions/{version}/sample-input
-	// GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
-
-	// GET:/models/{model_id}/versions/{version}/sample-output
-	// GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
-
+	GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
+	GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
 	GetTags(ctx context.Context) (*GetTagsOutput, error)
 	GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error)
 }
@@ -160,7 +156,6 @@ func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *Lis
 	if err != nil {
 		return nil, err
 	}
-
 	// decide if we have a next page (the next link is not always accurate?)
 	var nextPage *ListModelsInput
 	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
@@ -175,12 +170,26 @@ func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *Lis
 	}, nil
 }
 
-func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error) {
-	isAdmin, err := c.baseClient.Accounting().HasEntitlement(ctx, "CAN_PATCH_PROCESSING_MODEL_VERSION")
+func (c *standardModelsClient) GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error) {
+	var out interface{}
+	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-input", input.ModelID, input.Version)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
 
+	jsonB, err := json.Marshal(out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetModelVersionSampleInputOutput{
+		Sample: string(jsonB),
+	}, nil
+}
+
+func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error) {
+	isAdmin, err := c.baseClient.Accounting().HasEntitlement(ctx, "CAN_PATCH_PROCESSING_MODEL_VERSION")
 	url := fmt.Sprintf("/api/models/%s/versions/%s", input.ModelID, input.Version)
 	if isAdmin {
 		url = url + "/processing"
@@ -191,8 +200,22 @@ func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-
 	return &UpdateModelProcessingEnginesOutput{
 		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error) {
+	var out interface{}
+	url := fmt.Sprintf("/api/models/%s/versions/%s/sample-output", input.ModelID, input.Version)
+	_, err := c.baseClient.requestor.get(ctx, url, &out)
+
+	jsonB, err := json.Marshal(out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetModelVersionSampleOutputOutput{
+		Sample: string(jsonB),
 	}, nil
 }

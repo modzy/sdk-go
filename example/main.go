@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -41,7 +42,8 @@ func main() {
 	// getTagModels(client, []string{"time_series", "equipment_and_machinery"})
 	// describeModelByName(client, "Sentiment Analysis")
 	// listModelVersions(client, "ed542963de")
-	updateModelProcessingEngines(client, "ed542963de", "0.0.27")
+	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
+	getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -166,7 +168,6 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 }
 
 func getJobFeatures(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to list features")
@@ -184,8 +185,6 @@ func getMinimumEngines(client modzy.Client) {
 }
 
 func describeModel(client modzy.Client, modelID string) {
-	ctx := context.TODO()
-
 	out, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: modelID})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get model details for %s", modelID)
@@ -198,7 +197,6 @@ func describeModel(client modzy.Client, modelID string) {
 }
 
 func getRelatedModels(client modzy.Client, modelID string) {
-	ctx := context.TODO()
 	out, err := client.Models().GetRelatedModels(ctx, &modzy.GetRelatedModelsInput{ModelID: modelID})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get related models")
@@ -208,7 +206,6 @@ func getRelatedModels(client modzy.Client, modelID string) {
 }
 
 func listModels(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Models().ListModels(ctx, (&modzy.ListModelsInput{}).
 		WithFilterAnd(modzy.ListModelsFilterFieldAuthor, "modzy").
 		WithFilterAnd(modzy.ListModelsFilterFieldIsActive, "false"),
@@ -221,7 +218,6 @@ func listModels(client modzy.Client) {
 }
 
 func getTags(client modzy.Client) {
-	ctx := context.TODO()
 	out, err := client.Models().GetTags(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get tags")
@@ -231,7 +227,6 @@ func getTags(client modzy.Client) {
 }
 
 func getTagModels(client modzy.Client, tagIDs []string) {
-	ctx := context.TODO()
 	out, err := client.Models().GetTagModels(ctx, &modzy.GetTagModelsInput{TagIDs: tagIDs})
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get tag models")
@@ -263,6 +258,30 @@ func listModelVersions(client modzy.Client, modelID string) {
 		return
 	}
 	logrus.Infof("Found %d versions for model %s", len(out.Versions), modelID)
+}
+
+func getModelSampleInputAndOutput(client modzy.Client, modelID string, version string) {
+	in, err := client.Models().GetModelVersionSampleInput(ctx, &modzy.GetModelVersionSampleInputInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get sample input")
+	} else {
+		logrus.Info("Dumping sample input:")
+		fmt.Fprintln(logrus.StandardLogger().Out, in.Sample)
+	}
+
+	out, err := client.Models().GetModelVersionSampleOutput(ctx, &modzy.GetModelVersionSampleOutputInput{
+		ModelID: modelID,
+		Version: version,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get sample output")
+	} else {
+		logrus.Info("Dumping sample outptu:")
+		fmt.Fprintln(logrus.StandardLogger().Out, out.Sample)
+	}
 }
 
 func updateModelProcessingEngines(client modzy.Client, modelID string, version string) {

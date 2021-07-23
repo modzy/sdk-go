@@ -139,3 +139,21 @@ type UpdateModelProcessingEnginesInput struct {
 type UpdateModelProcessingEnginesOutput struct {
 	Details model.ModelVersionDetails `json:"details"`
 }
+
+type GetModelVersionSampleInputInput struct {
+	ModelID string
+	Version string
+}
+
+type GetModelVersionSampleInputOutput struct {
+	Sample string `json:"sample"`
+}
+
+type GetModelVersionSampleOutputInput struct {
+	ModelID string
+	Version string
+}
+
+type GetModelVersionSampleOutputOutput struct {
+	Sample string `json:"sample"`
+}
