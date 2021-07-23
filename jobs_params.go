@@ -34,17 +34,17 @@ const (
 type ListJobsHistorySortField string
 
 const (
-	ListJobsHistorySortIdentifier    ListJobsHistorySortField = "identifier"
-	ListJobsHistorySortSubmittedBy   ListJobsHistorySortField = "submittedBy"
-	ListJobsHistorySortSubmittedJobs ListJobsHistorySortField = "submittedJobs"
-	ListJobsHistorySortStatus        ListJobsHistorySortField = "status"
-	ListJobsHistorySortCreatedAt     ListJobsHistorySortField = "createdAt"
-	ListJobsHistorySortUpdatedAt     ListJobsHistorySortField = "updatedAt"
-	ListJobsHistorySortSubmittedAt   ListJobsHistorySortField = "submittedAt"
-	ListJobsHistorySortTotal         ListJobsHistorySortField = "total"
-	ListJobsHistorySortCompleted     ListJobsHistorySortField = "completed"
-	ListJobsHistorySortFail          ListJobsHistorySortField = "fail"
-	ListJobsHistorySortModel         ListJobsHistorySortField = "model"
+	ListJobsHistorySortFieldIdentifier    ListJobsHistorySortField = "identifier"
+	ListJobsHistorySortFieldSubmittedBy   ListJobsHistorySortField = "submittedBy"
+	ListJobsHistorySortFieldSubmittedJobs ListJobsHistorySortField = "submittedJobs"
+	ListJobsHistorySortFieldStatus        ListJobsHistorySortField = "status"
+	ListJobsHistorySortFieldCreatedAt     ListJobsHistorySortField = "createdAt"
+	ListJobsHistorySortFieldUpdatedAt     ListJobsHistorySortField = "updatedAt"
+	ListJobsHistorySortFieldSubmittedAt   ListJobsHistorySortField = "submittedAt"
+	ListJobsHistorySortFieldTotal         ListJobsHistorySortField = "total"
+	ListJobsHistorySortFieldCompleted     ListJobsHistorySortField = "completed"
+	ListJobsHistorySortFieldFail          ListJobsHistorySortField = "fail"
+	ListJobsHistorySortFieldModel         ListJobsHistorySortField = "model"
 )
 
 func (i *ListJobsHistoryInput) WithPaging(perPage int, page int) *ListJobsHistoryInput {
@@ -62,14 +62,14 @@ func (i *ListJobsHistoryInput) WithFilterOr(field ListJobsHistoryFilterField, va
 	return i
 }
 
-func (i ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...ListJobsHistorySortField) *ListJobsHistoryInput {
+func (i *ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...ListJobsHistorySortField) *ListJobsHistoryInput {
 	sorts := []string{}
 	for _, s := range sortBy {
 		sorts = append(sorts, string(s))
 	}
 	i.Paging.SortDirection = sortDirection
 	i.Paging.SortBy = sorts
-	return &i
+	return i
 }
 
 type ListJobsHistoryOutput struct {

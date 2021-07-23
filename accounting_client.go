@@ -23,7 +23,7 @@ var _ AccountingClient = &standardAccountingClient{}
 func (c *standardAccountingClient) GetEntitlements(ctx context.Context) (*GetEntitlementsOutput, error) {
 	var out []model.Entitlement
 	url := "/api/accounting/entitlements"
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}

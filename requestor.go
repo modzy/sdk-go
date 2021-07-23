@@ -101,11 +101,11 @@ func (r *requestor) execute(
 	return resp, nil
 }
 
-func (r *requestor) get(ctx context.Context, path string, into interface{}) (*http.Response, error) {
+func (r *requestor) Get(ctx context.Context, path string, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "GET", nil, into)
 }
 
-func (r *requestor) list(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error) {
+func (r *requestor) List(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error) {
 	// append paging information to our url query
 	partialUrl, err := url.Parse(path)
 	if err != nil {
@@ -136,25 +136,25 @@ func (r *requestor) list(ctx context.Context, path string, paging PagingInput, i
 
 	partialUrl.RawQuery = q.Encode()
 
-	resp, err := r.get(ctx, partialUrl.String(), into)
+	resp, err := r.Get(ctx, partialUrl.String(), into)
 	if err != nil {
 		return resp, link.Group{}, err
 	}
 
 	// parse out the link response header
-	links := link.Parse(resp.Header.Get("Link"))
+	links := link.ParseResponse(resp)
 
 	return resp, links, err
 }
 
-func (r *requestor) post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error) {
+func (r *requestor) Post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "POST", toPost, into)
 }
 
-func (r *requestor) patch(ctx context.Context, path string, toPatch interface{}, into interface{}) (*http.Response, error) {
+func (r *requestor) Patch(ctx context.Context, path string, toPatch interface{}, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "PATCH", toPatch, into)
 }
 
-func (r *requestor) delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
+func (r *requestor) Delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
 	return r.execute(ctx, path, "DELETE", nil, into)
 }

@@ -6,7 +6,6 @@ import (
 )
 
 type JobsClientFake struct {
-	NewJobActionsFunc        func(jobIdentifier string) JobActions
 	GetJobDetailsFunc        func(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistoryFunc      func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobTextFunc        func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
@@ -17,14 +16,10 @@ type JobsClientFake struct {
 	// SubmitJobJDBCFunc func(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	CancelJobFunc      func(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResultsFunc  func(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
-	GetJobFeaturesFunc func(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error)
+	GetJobFeaturesFunc func(ctx context.Context) (*GetJobFeaturesOutput, error)
 }
 
 var _ JobsClient = &JobsClientFake{}
-
-func (c *JobsClientFake) NewJobActions(jobIdentifier string) JobActions {
-	return c.NewJobActionsFunc(jobIdentifier)
-}
 
 func (c *JobsClientFake) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	return c.GetJobDetailsFunc(ctx, input)
@@ -55,6 +50,6 @@ func (c *JobsClientFake) GetJobResults(ctx context.Context, input *GetJobResults
 	return c.GetJobResultsFunc(ctx, input)
 }
 
-func (c *JobsClientFake) GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error) {
-	return c.GetJobFeaturesFunc(ctx, input)
+func (c *JobsClientFake) GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error) {
+	return c.GetJobFeaturesFunc(ctx)
 }

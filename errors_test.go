@@ -26,6 +26,7 @@ func TestModzyHttpErrorCause(t *testing.T) {
 		403: ErrForbidden,
 		404: ErrNotFound,
 		500: ErrInternalServer,
+		418: ErrUnknown,
 	}
 	for code, expectedErr := range causes {
 		modzyErr := &ModzyHTTPError{

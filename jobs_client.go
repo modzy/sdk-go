@@ -9,7 +9,6 @@ import (
 )
 
 type JobsClient interface {
-	NewJobActions(jobIdentifier string) JobActions
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
@@ -20,7 +19,7 @@ type JobsClient interface {
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
-	GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error)
+	GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error)
 }
 
 type standardJobsClient struct {
@@ -29,14 +28,10 @@ type standardJobsClient struct {
 
 var _ JobsClient = &standardJobsClient{}
 
-func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
-	return NewJobActions(c.baseClient, jobIdentifier)
-}
-
 func (c *standardJobsClient) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	var out model.JobDetails
 	url := fmt.Sprintf("/api/jobs/%s", input.JobIdentifier)
-	_, err := c.baseClient.requestor.get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +46,7 @@ func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJob
 
 	var items []model.JobSummary
 	url := "/api/jobs/history"
-	_, links, err := c.baseClient.requestor.list(ctx, url, input.Paging, &items)
+	_, links, err := c.baseClient.requestor.List(ctx, url, input.Paging, &items)
 	if err != nil {
 		return nil, err
 	}
@@ -97,14 +92,14 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 	var response model.SubmitJobResponse
 
 	url := "/api/jobs"
-	_, err := c.baseClient.requestor.post(ctx, url, toPost, &response)
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SubmitJobTextOutput{
 		Response:   response,
-		JobActions: c.NewJobActions(response.JobIdentifier),
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
 	}, nil
 }
 
@@ -144,7 +139,7 @@ func (c *standardJobsClient) CancelJob(ctx context.Context, input *CancelJobInpu
 	var response model.JobDetails
 
 	url := fmt.Sprintf("/api/jobs/%s", input.JobIdentifier)
-	_, err := c.baseClient.requestor.delete(ctx, url, &response)
+	_, err := c.baseClient.requestor.Delete(ctx, url, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +153,7 @@ func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobRes
 	var response model.JobResults
 
 	url := fmt.Sprintf("/api/results/%s", input.JobIdentifier)
-	_, err := c.baseClient.requestor.get(ctx, url, &response)
+	_, err := c.baseClient.requestor.Get(ctx, url, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -168,11 +163,11 @@ func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobRes
 	}, nil
 }
 
-func (c *standardJobsClient) GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error) {
+func (c *standardJobsClient) GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error) {
 	var response model.JobFeatures
 
 	url := fmt.Sprintf("/api/jobs/features")
-	_, err := c.baseClient.requestor.get(ctx, url, &response)
+	_, err := c.baseClient.requestor.Get(ctx, url, &response)
 	if err != nil {
 		return nil, err
 	}
