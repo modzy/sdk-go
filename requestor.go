@@ -151,7 +151,7 @@ func (r *stdRequestor) List(ctx context.Context, path string, paging PagingInput
 	}
 
 	// parse out the link response header
-	links := link.Parse(resp.Header.Get("Link"))
+	links := link.ParseResponse(resp)
 
 	return resp, links, err
 }
