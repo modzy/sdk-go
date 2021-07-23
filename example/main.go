@@ -164,7 +164,7 @@ func describeJob(client modzy.Client, jobIdentifier string) {
 
 func getJobFeatures(client modzy.Client) {
 	ctx := context.TODO()
-	out, err := client.Jobs().GetJobFeatures(ctx, &modzy.GetJobFeaturesInput{})
+	out, err := client.Jobs().GetJobFeatures(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to list features")
 		return

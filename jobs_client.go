@@ -19,7 +19,7 @@ type JobsClient interface {
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
-	GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error)
+	GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error)
 }
 
 type standardJobsClient struct {
@@ -181,7 +181,7 @@ func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobRes
 	}, nil
 }
 
-func (c *standardJobsClient) GetJobFeatures(ctx context.Context, input *GetJobFeaturesInput) (*GetJobFeaturesOutput, error) {
+func (c *standardJobsClient) GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error) {
 	var response model.JobFeatures
 
 	url := fmt.Sprintf("/api/jobs/features")
