@@ -6,7 +6,6 @@ import (
 )
 
 type JobsClientFake struct {
-	NewJobActionsFunc        func(jobIdentifier string) JobActions
 	GetJobDetailsFunc        func(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistoryFunc      func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobTextFunc        func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
@@ -21,10 +20,6 @@ type JobsClientFake struct {
 }
 
 var _ JobsClient = &JobsClientFake{}
-
-func (c *JobsClientFake) NewJobActions(jobIdentifier string) JobActions {
-	return c.NewJobActionsFunc(jobIdentifier)
-}
 
 func (c *JobsClientFake) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	return c.GetJobDetailsFunc(ctx, input)

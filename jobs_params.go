@@ -62,14 +62,14 @@ func (i *ListJobsHistoryInput) WithFilterOr(field ListJobsHistoryFilterField, va
 	return i
 }
 
-func (i ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...ListJobsHistorySortField) *ListJobsHistoryInput {
+func (i *ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...ListJobsHistorySortField) *ListJobsHistoryInput {
 	sorts := []string{}
 	for _, s := range sortBy {
 		sorts = append(sorts, string(s))
 	}
 	i.Paging.SortDirection = sortDirection
 	i.Paging.SortBy = sorts
-	return &i
+	return i
 }
 
 type ListJobsHistoryOutput struct {

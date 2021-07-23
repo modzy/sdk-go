@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func ListJobsHistoryInputWithPaging(t *testing.T) {
+func TestListJobsHistoryInputWithPaging(t *testing.T) {
 	i := &ListJobsHistoryInput{}
 	i.WithPaging(4, 5)
 
@@ -17,7 +17,7 @@ func ListJobsHistoryInputWithPaging(t *testing.T) {
 	}
 }
 
-func ListJobsHistoryInputWithFilterAnd(t *testing.T) {
+func TestListJobsHistoryInputWithFilterAnd(t *testing.T) {
 	i := &ListJobsHistoryInput{}
 	i.WithFilterAnd(ListJobsHistoryFilterFieldAccessKey, "a", "b")
 
@@ -32,7 +32,7 @@ func ListJobsHistoryInputWithFilterAnd(t *testing.T) {
 	}
 }
 
-func ListJobsHistoryInputWithFilterOr(t *testing.T) {
+func TestListJobsHistoryInputWithFilterOr(t *testing.T) {
 	i := &ListJobsHistoryInput{}
 	i.WithFilterOr(ListJobsHistoryFilterFieldAccessKey, "c", "d")
 
@@ -47,7 +47,7 @@ func ListJobsHistoryInputWithFilterOr(t *testing.T) {
 	}
 }
 
-func ListJobsHistoryInputWitSort(t *testing.T) {
+func TestListJobsHistoryInputWitSort(t *testing.T) {
 	i := &ListJobsHistoryInput{}
 	i.WithSort(SortDirectionDescending, ListJobsHistorySortFieldIdentifier, "c")
 
