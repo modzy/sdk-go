@@ -48,7 +48,7 @@ func listJobsHistory(client modzy.Client) {
 	listJobsHistoryInput := (&modzy.ListJobsHistoryInput{}).
 		WithPaging(2, 1).
 		WithFilterOr(modzy.ListJobsHistoryFilterFieldStatus, modzy.JobStatusTimedOut). // , modzy.JobStatusPending
-		WithSort(modzy.SortDirectionDescending, modzy.ListJobsHistorySortCreatedAt)
+		WithSort(modzy.SortDirectionDescending, modzy.ListJobsHistorySortFieldCreatedAt)
 
 	for listJobsHistoryInput != nil {
 		listJobsHistoryOut, err := client.Jobs().ListJobsHistory(ctx, listJobsHistoryInput)
@@ -140,7 +140,7 @@ func submitExampleText(client modzy.Client, cancel bool) {
 }
 
 func describeJob(client modzy.Client, jobIdentifier string) {
-	actions := client.Jobs().NewJobActions(jobIdentifier)
+	actions := modzy.NewJobActions(client, jobIdentifier)
 	jobResults, err := actions.GetResults(ctx)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to get resutls for job")

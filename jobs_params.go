@@ -34,17 +34,17 @@ const (
 type ListJobsHistorySortField string
 
 const (
-	ListJobsHistorySortIdentifier    ListJobsHistorySortField = "identifier"
-	ListJobsHistorySortSubmittedBy   ListJobsHistorySortField = "submittedBy"
-	ListJobsHistorySortSubmittedJobs ListJobsHistorySortField = "submittedJobs"
-	ListJobsHistorySortStatus        ListJobsHistorySortField = "status"
-	ListJobsHistorySortCreatedAt     ListJobsHistorySortField = "createdAt"
-	ListJobsHistorySortUpdatedAt     ListJobsHistorySortField = "updatedAt"
-	ListJobsHistorySortSubmittedAt   ListJobsHistorySortField = "submittedAt"
-	ListJobsHistorySortTotal         ListJobsHistorySortField = "total"
-	ListJobsHistorySortCompleted     ListJobsHistorySortField = "completed"
-	ListJobsHistorySortFail          ListJobsHistorySortField = "fail"
-	ListJobsHistorySortModel         ListJobsHistorySortField = "model"
+	ListJobsHistorySortFieldIdentifier    ListJobsHistorySortField = "identifier"
+	ListJobsHistorySortFieldSubmittedBy   ListJobsHistorySortField = "submittedBy"
+	ListJobsHistorySortFieldSubmittedJobs ListJobsHistorySortField = "submittedJobs"
+	ListJobsHistorySortFieldStatus        ListJobsHistorySortField = "status"
+	ListJobsHistorySortFieldCreatedAt     ListJobsHistorySortField = "createdAt"
+	ListJobsHistorySortFieldUpdatedAt     ListJobsHistorySortField = "updatedAt"
+	ListJobsHistorySortFieldSubmittedAt   ListJobsHistorySortField = "submittedAt"
+	ListJobsHistorySortFieldTotal         ListJobsHistorySortField = "total"
+	ListJobsHistorySortFieldCompleted     ListJobsHistorySortField = "completed"
+	ListJobsHistorySortFieldFail          ListJobsHistorySortField = "fail"
+	ListJobsHistorySortFieldModel         ListJobsHistorySortField = "model"
 )
 
 func (i *ListJobsHistoryInput) WithPaging(perPage int, page int) *ListJobsHistoryInput {

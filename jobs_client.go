@@ -9,7 +9,6 @@ import (
 )
 
 type JobsClient interface {
-	NewJobActions(jobIdentifier string) JobActions
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
@@ -28,10 +27,6 @@ type standardJobsClient struct {
 }
 
 var _ JobsClient = &standardJobsClient{}
-
-func (c *standardJobsClient) NewJobActions(jobIdentifier string) JobActions {
-	return NewJobActions(c.baseClient, jobIdentifier)
-}
 
 func (c *standardJobsClient) GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error) {
 	var out model.JobDetails
@@ -122,7 +117,7 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 
 	return &SubmitJobTextOutput{
 		Response:   response,
-		JobActions: c.NewJobActions(response.JobIdentifier),
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
 	}, nil
 }
 
