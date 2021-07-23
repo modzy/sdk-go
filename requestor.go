@@ -54,12 +54,11 @@ func (r *requestor) execute(
 
 	if r.requestDebugging {
 		// jsonize again if debugging
-		debugJson, _ := json.Marshal(toPostStruct)
-
+		debugJson, debugErr := json.Marshal(toPostStruct)
 		logrus.WithFields(logrus.Fields{
 			"url":    req.URL,
 			"method": method,
-			"body":   string(debugJson),
+			"body":   fmt.Sprintf("%v => %s", debugErr, string(debugJson)),
 		}).Debug("API request")
 	}
 
@@ -72,13 +71,13 @@ func (r *requestor) execute(
 	var toDecode io.Reader = resp.Body
 
 	if r.responseDebugging {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, debugErr := ioutil.ReadAll(resp.Body)
 		logrus.WithFields(logrus.Fields{
 			"method":     req.Method,
 			"url":        req.URL,
 			"statusCode": resp.StatusCode,
 			// "headers":    resp.Header,
-			"body": string(body),
+			"body": fmt.Sprintf("%v => %s", debugErr, string(body)),
 		}).Debug("API response")
 		toDecode = bytes.NewReader(body)
 	}
