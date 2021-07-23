@@ -41,7 +41,7 @@ func TestJobActionsWaitForCompletion(t *testing.T) {
 	client := &ClientFake{
 		JobsFunc: func() JobsClient {
 			return &JobsClientFake{
-				WaitForJobCompletionFunc: func(ctx context.Context, input *GetJobDetailsInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
+				WaitForJobCompletionFunc: func(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
 					if expectedCtx != ctx {
 						t.Errorf("ctx not passed through")
 					}

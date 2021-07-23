@@ -3,10 +3,14 @@ package modzy
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
+
+var notParsablePath = string([]byte{0x7f})
 
 func TestGet(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +36,14 @@ func TestGet(t *testing.T) {
 	}
 	if into != "some-response" {
 		t.Errorf("response not parsed into: %s", into)
+	}
+}
+
+func TestListBadPath(t *testing.T) {
+	requestor := &requestor{}
+	_, _, err := requestor.List(context.TODO(), notParsablePath, PagingInput{}, nil)
+	if err == nil {
+		t.Errorf("expected error")
 	}
 }
 
@@ -129,4 +141,138 @@ func TestDelete(t *testing.T) {
 	if into != "some-response" {
 		t.Errorf("response not parsed into: %s", into)
 	}
+}
+
+func TestExecuteBodyStructCannotMarshal(t *testing.T) {
+	requestor := &requestor{}
+	_, err := requestor.execute(context.TODO(), "", "", cannotMarshal{}, nil)
+	if err == nil {
+		t.Errorf("expected error")
+	}
+}
+
+func TestExecuteCannotBuildRequest(t *testing.T) {
+	requestor := &requestor{}
+	_, err := requestor.execute(context.TODO(), notParsablePath, "GET", nil, nil)
+	if err == nil {
+		t.Errorf("expected error")
+	}
+}
+
+func TestExecuteFailureToExecute(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("stop now")
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient: defaultHTTPClient,
+	}
+	_, err := requestor.execute(context.TODO(), "http://nope", "GET", nil, nil)
+	if err == nil {
+		t.Errorf("expected error")
+	}
+}
+
+func TestExecuteWithModzyError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+		w.Write([]byte(`{"statusCode": 123}`))
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient: defaultHTTPClient,
+	}
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	if modzyErr, is := err.(*ModzyHTTPError); !is {
+		t.Errorf("expected modzy error: %v", err)
+	} else {
+		if modzyErr.StatusCode != 123 {
+			t.Errorf("expected parsed modzy code of 123")
+		}
+	}
+}
+
+func TestExecuteBad200Content(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`bad-json`))
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient: defaultHTTPClient,
+	}
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	if err == nil {
+		t.Errorf("expected error")
+	}
+	if !strings.Contains(err.Error(), "invalid character 'b'") {
+		t.Errorf("Did not get the expected error: %v", err)
+	}
+}
+
+func TestExecute204(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient: defaultHTTPClient,
+	}
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	if err != nil {
+		t.Errorf("did not expect error: %v", err)
+	}
+}
+
+func TestAuthorizationDecorator(t *testing.T) {
+	// just make sure it runs (coverage), I am not asserting logs
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Test") != "Decoration" {
+			t.Errorf("authorization decorator not ran")
+		}
+		w.WriteHeader(204)
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient: defaultHTTPClient,
+		authorizationDecorator: func(toDecorate *http.Request) *http.Request {
+			toDecorate.Header.Set("Test", "Decoration")
+			return toDecorate
+		},
+	}
+	resp, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	if err != nil {
+		t.Errorf("did not expect error: %v", err)
+	}
+	if resp.StatusCode != 204 {
+		t.Errorf("Did not hit test server")
+	}
+}
+
+func TestExecuteWithDebugging(t *testing.T) {
+	// just make sure it runs (coverage), I am not asserting logs
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		httpClient:        defaultHTTPClient,
+		requestDebugging:  true,
+		responseDebugging: true,
+	}
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	if err != nil {
+		t.Errorf("did not expect error: %v", err)
+	}
+}
+
+type cannotMarshal struct{}
+
+func (cannotMarshal) MarshalJSON() ([]byte, error) {
+	return nil, fmt.Errorf("will-not-marshal")
 }

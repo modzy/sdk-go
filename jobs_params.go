@@ -11,6 +11,8 @@ type GetJobDetailsInput struct {
 	JobIdentifier string
 }
 
+type WaitForJobCompletionInput GetJobDetailsInput
+
 // GetJobDetailsOutput -
 type GetJobDetailsOutput struct {
 	Details model.JobDetails `json:"details"`
