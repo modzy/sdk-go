@@ -22,10 +22,3 @@ func WithHTTPDebugging(request bool, response bool) ClientOption {
 		c.requestor.(*stdRequestor).responseDebugging = response
 	}
 }
-
-// withRequestor is helpful for mock testing; do not use this outside of unit testing, and do not combine this with other Options
-func withRequestor(requestor requestor) ClientOption {
-	return func(c *standardClient) {
-		c.requestor = requestor
-	}
-}
