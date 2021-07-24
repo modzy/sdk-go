@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ func main() {
 	// listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
-	// submitExampleText(client, false)
+	submitExampleEmbedded(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -43,7 +44,7 @@ func main() {
 	// describeModelByName(client, "Sentiment Analysis")
 	// listModelVersions(client, "ed542963de")
 	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
-	getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
+	// getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -117,11 +118,38 @@ func submitExampleText(client modzy.Client, cancel bool) {
 		return
 	}
 
-	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("Text job submitted")
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("text job submitted")
+	afterSubmit(client, cancel, submittedJob)
+}
 
+//go:embed smiling_face.encoded
+var SmilingFace string
+
+func submitExampleEmbedded(client modzy.Client, cancel bool) {
+	logrus.Info("Will submit example embedded job")
+	submittedJob, err := client.Jobs().SubmitJobEmbedded(ctx, &modzy.SubmitJobEmbeddedInput{
+		ModelIdentifier: "ed542963de",
+		ModelVersion:    "0.0.27",
+		Timeout:         time.Second * 30,
+		Inputs: map[string]modzy.EmbeddedInputItem{
+			"image-1": {
+				"image": SmilingFace,
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit embedded job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("embedded job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func afterSubmit(client modzy.Client, cancel bool, job modzy.JobActions) {
 	if cancel {
 		logrus.Info("Will cancel job")
-		cancelOut, err := submittedJob.Cancel(ctx)
+		cancelOut, err := job.Cancel(ctx)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to cancel job")
 		}
@@ -129,13 +157,13 @@ func submitExampleText(client modzy.Client, cancel bool) {
 		return
 	} else {
 		logrus.Info("Will wait until job completes")
-		jobDetails, err := submittedJob.WaitForCompletion(ctx, time.Second*5)
+		jobDetails, err := job.WaitForCompletion(ctx, time.Second*5)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to wait for job completion")
 			return
 		}
 		logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
-		jobResults, err := submittedJob.GetResults(ctx)
+		jobResults, err := job.GetResults(ctx)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to get job results")
 			return

@@ -94,6 +94,21 @@ type SubmitJobTextOutput struct {
 	JobActions
 }
 
+type EmbeddedInputItem map[string]string
+
+type SubmitJobEmbeddedInput struct {
+	ModelIdentifier string
+	ModelVersion    string
+	Explain         bool
+	Timeout         time.Duration
+	Inputs          map[string]EmbeddedInputItem
+}
+
+type SubmitJobEmbeddedOutput struct {
+	Response model.SubmitJobResponse
+	JobActions
+}
+
 type CancelJobInput struct {
 	JobIdentifier string `json:"jobIdentifier"`
 }

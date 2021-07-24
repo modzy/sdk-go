@@ -12,11 +12,11 @@ type JobsClient interface {
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
-	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
-	// SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
+	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	// SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
+	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
 	GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error)
@@ -98,6 +98,44 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 	}
 
 	return &SubmitJobTextOutput{
+		Response:   response,
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
+	}, nil
+}
+
+func (c *standardJobsClient) SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error) {
+
+	toPostSources := map[string]model.TextInputItem{}
+	for k, v := range input.Inputs {
+		input := map[string]string{}
+		for innerK, innerV := range v {
+			input[innerK] = innerV
+		}
+		toPostSources[k] = input
+	}
+
+	toPost := model.SubmitTextJob{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+		Input: model.TextInput{
+			Type:    "embedded",
+			Sources: toPostSources,
+		},
+	}
+
+	var response model.SubmitJobResponse
+
+	url := "/api/jobs"
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SubmitJobEmbeddedOutput{
 		Response:   response,
 		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
 	}, nil
