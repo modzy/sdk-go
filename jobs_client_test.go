@@ -160,11 +160,11 @@ func TestSubmitJobEmbedded(t *testing.T) {
 		Timeout:         time.Second * 9,
 		Inputs: map[string]EmbeddedInputItem{
 			"input-1": {
-				"input-1.1": "input-1.1-value",
-				"input-1.2": "input-1.2-value",
+				"input-1.1": URIEncodeString("input-1.1-value", ""),
+				"input-1.2": URIEncodeString("input-1.2-value", ""),
 			},
 			"input-2": {
-				"input-2.1": "input-2.1-value",
+				"input-2.1": URIEncodeString("input-2.1-value", ""),
 			},
 		},
 	})

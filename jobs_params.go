@@ -94,7 +94,7 @@ type SubmitJobTextOutput struct {
 	JobActions
 }
 
-type EmbeddedInputItem map[string]string
+type EmbeddedInputItem map[string]URIEncodable
 
 type SubmitJobEmbeddedInput struct {
 	ModelIdentifier string

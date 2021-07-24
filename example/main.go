@@ -97,7 +97,7 @@ func submitExampleText(client modzy.Client, cancel bool) {
 	submittedJob, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 		ModelIdentifier: "ed542963de",
 		ModelVersion:    "0.0.27",
-		Timeout:         time.Second * 30,
+		Timeout:         time.Minute * 5,
 		Inputs: map[string]modzy.TextInputItem{
 			"happy-text": {
 				"input.txt": "I love AI! :)",
@@ -130,11 +130,14 @@ func submitExampleEmbedded(client modzy.Client, cancel bool) {
 	submittedJob, err := client.Jobs().SubmitJobEmbedded(ctx, &modzy.SubmitJobEmbeddedInput{
 		ModelIdentifier: "ed542963de",
 		ModelVersion:    "0.0.27",
-		Timeout:         time.Second * 30,
+		Timeout:         time.Minute * 5,
 		Inputs: map[string]modzy.EmbeddedInputItem{
 			"image-1": {
-				"image": SmilingFace,
+				"image": modzy.URIEncodedString(SmilingFace),
 			},
+			// "image-2": {
+			// 	"image": modzy.URIEncodeFilename("multiple_emotions.jpg", ""),
+			// },
 		},
 	})
 	if err != nil {

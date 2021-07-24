@@ -3,9 +3,11 @@ package modzy
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/modzy/go-sdk/model"
+	"github.com/pkg/errors"
 )
 
 type JobsClient interface {
@@ -104,24 +106,32 @@ func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJob
 }
 
 func (c *standardJobsClient) SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error) {
-
-	toPostSources := map[string]model.TextInputItem{}
+	toPostSources := map[string]model.EmbeddedInputItem{}
 	for k, v := range input.Inputs {
 		input := map[string]string{}
 		for innerK, innerV := range v {
-			input[innerK] = innerV
+			dataReader, err := innerV()
+			if err != nil {
+				return nil, errors.WithMessagef(err, "Failed to get data reader for item %s/%s", k, innerK)
+			}
+			encodedString, err := io.ReadAll(dataReader)
+			if err != nil {
+
+				return nil, errors.WithMessagef(err, "Failed to stream data for item %s/%s", k, innerK)
+			}
+			input[innerK] = string(encodedString)
 		}
 		toPostSources[k] = input
 	}
 
-	toPost := model.SubmitTextJob{
+	toPost := model.SubmitEmbeddedJob{
 		Model: model.SubmitJobModelInfo{
 			Identifier: input.ModelIdentifier,
 			Version:    input.ModelVersion,
 		},
 		Explain: input.Explain,
 		Timeout: int(input.Timeout / time.Millisecond),
-		Input: model.TextInput{
+		Input: model.EmbeddedInput{
 			Type:    "embedded",
 			Sources: toPostSources,
 		},
