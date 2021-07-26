@@ -126,18 +126,23 @@ func submitExampleText(client modzy.Client, cancel bool) {
 var SmilingFace string
 
 func submitExampleEmbedded(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
 	logrus.Info("Will submit example embedded job")
 	submittedJob, err := client.Jobs().SubmitJobEmbedded(ctx, &modzy.SubmitJobEmbeddedInput{
-		ModelIdentifier: "ed542963de",
-		ModelVersion:    "0.0.27",
+		ModelIdentifier: model.Details.ModelID,
+		ModelVersion:    model.Details.LatestVersion,
 		Timeout:         time.Minute * 5,
 		Inputs: map[string]modzy.EmbeddedInputItem{
 			"image-1": {
 				"image": modzy.URIEncodedString(SmilingFace),
 			},
-			// "image-2": {
-			// 	"image": modzy.URIEncodeFilename("multiple_emotions.jpg", ""),
-			// },
+			"image-2": {
+				"image": modzy.URIEncodeFilename("success_kid.png", ""),
+			},
 		},
 	})
 	if err != nil {

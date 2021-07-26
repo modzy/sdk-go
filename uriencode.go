@@ -70,10 +70,12 @@ func DetectMimeType(filename string) string {
 
 	// TODO what are common extensions to detect for this type of data?
 	switch extension {
-	case ".jpg":
+	case "jpg":
 		fallthrough
-	case ".jpeg":
+	case "jpeg":
 		return "image/jpeg"
+	case "png":
+		return "image/png"
 	}
 	return ""
 }
