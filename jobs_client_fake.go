@@ -11,7 +11,7 @@ type JobsClientFake struct {
 	SubmitJobTextFunc        func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	WaitForJobCompletionFunc func(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	SubmitJobEmbeddedFunc    func(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
-	// SubmitJobFileFunc func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
+	SubmitJobFileFunc        func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3Func func(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBCFunc func(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	CancelJobFunc      func(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
@@ -37,9 +37,9 @@ func (c *JobsClientFake) SubmitJobEmbedded(ctx context.Context, input *SubmitJob
 	return c.SubmitJobEmbeddedFunc(ctx, input)
 }
 
-// SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
-// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
-// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
+func (c *JobsClientFake) SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error) {
+	return c.SubmitJobFileFunc(ctx, input)
+}
 
 func (c *JobsClientFake) WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
 	return c.WaitForJobCompletionFunc(ctx, input, pollInterval)

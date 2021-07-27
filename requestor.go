@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -28,17 +29,24 @@ type requestor struct {
 
 func (r *requestor) execute(
 	ctx context.Context,
-	path string, method string, toPostStruct interface{}, into interface{},
+	path string, method string, toPostInput interface{}, into interface{},
+	reqDecorator requestDecorator,
 ) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", r.baseURL, path)
 
+	// if we are handed a reader, then don't treat it as a json input
 	var toPost io.Reader
-	if toPostStruct != nil {
-		toPostBytes, err := json.Marshal(toPostStruct)
-		if err != nil {
-			return nil, errors.WithMessagef(err, "failed to marshal provided body to %s:%s", method, path)
+	if toPostInput != nil {
+		switch v := toPostInput.(type) {
+		case io.Reader:
+			toPost = v
+		default:
+			toPostBytes, err := json.Marshal(toPostInput)
+			if err != nil {
+				return nil, errors.WithMessagef(err, "failed to marshal provided body to %s:%s", method, path)
+			}
+			toPost = bytes.NewReader(toPostBytes)
 		}
-		toPost = bytes.NewReader(toPostBytes)
 	}
 
 	req, err := http.NewRequest(method, url, toPost)
@@ -46,19 +54,32 @@ func (r *requestor) execute(
 		return nil, errors.WithMessagef(err, "failed to create request to %s:%s", method, path)
 	}
 	req = req.WithContext(ctx)
-	req.Header.Add("Content-Type", "application/json")
 
 	if r.authorizationDecorator != nil {
 		r.authorizationDecorator(req)
 	}
 
+	if reqDecorator != nil {
+		reqDecorator(req)
+	}
+
 	if r.requestDebugging {
 		// jsonize again if debugging
-		debugJson, debugErr := json.Marshal(toPostStruct)
+		bodyDebug := ""
+		switch v := toPostInput.(type) {
+		case io.Reader:
+			bodyDebug = "reader provided"
+			bodyDebugBytes, _ := io.ReadAll(v)
+			bodyDebug = string(bodyDebugBytes)
+		default:
+			debugJson, debugErr := json.Marshal(toPostInput)
+			bodyDebug = fmt.Sprintf("%v => %s", debugErr, string(debugJson))
+		}
 		logrus.WithFields(logrus.Fields{
-			"url":    req.URL,
-			"method": method,
-			"body":   fmt.Sprintf("%v => %s", debugErr, string(debugJson)),
+			"url":     req.URL,
+			"method":  method,
+			"body":    bodyDebug,
+			"headers": req.Header,
 		}).Debug("API request")
 	}
 
@@ -89,11 +110,16 @@ func (r *requestor) execute(
 			return resp, errors.WithMessagef(err, "failed parsing non 200 response of %d from %s:%s", resp.StatusCode, method, path)
 		}
 		return resp, apiError
-	} else if resp.StatusCode == 204 {
+	}
+
+	if resp.StatusCode == 204 {
 		// No Content
+		// Do not bother with response body stuff; none expected
 	} else {
-		if err := json.NewDecoder(toDecode).Decode(into); err != nil {
-			return resp, errors.WithMessagef(err, "failed parsing the response from %s:%s", method, path)
+		if into != nil {
+			if err := json.NewDecoder(toDecode).Decode(into); err != nil {
+				return resp, errors.WithMessagef(err, "failed parsing the response from %s:%s", method, path)
+			}
 		}
 	}
 
@@ -101,7 +127,7 @@ func (r *requestor) execute(
 }
 
 func (r *requestor) Get(ctx context.Context, path string, into interface{}) (*http.Response, error) {
-	return r.execute(ctx, path, "GET", nil, into)
+	return r.execute(ctx, path, "GET", nil, into, jsonDecorator)
 }
 
 func (r *requestor) List(ctx context.Context, path string, paging PagingInput, into interface{}) (*http.Response, link.Group, error) {
@@ -147,13 +173,44 @@ func (r *requestor) List(ctx context.Context, path string, paging PagingInput, i
 }
 
 func (r *requestor) Post(ctx context.Context, path string, toPost interface{}, into interface{}) (*http.Response, error) {
-	return r.execute(ctx, path, "POST", toPost, into)
+	return r.execute(ctx, path, "POST", toPost, into, jsonDecorator)
 }
 
 func (r *requestor) Patch(ctx context.Context, path string, toPatch interface{}, into interface{}) (*http.Response, error) {
-	return r.execute(ctx, path, "PATCH", toPatch, into)
+	return r.execute(ctx, path, "PATCH", toPatch, into, jsonDecorator)
 }
 
 func (r *requestor) Delete(ctx context.Context, path string, into interface{}) (*http.Response, error) {
-	return r.execute(ctx, path, "DELETE", nil, into)
+	return r.execute(ctx, path, "DELETE", nil, into, jsonDecorator)
+}
+
+func (r *requestor) PostMultipart(ctx context.Context, path string, filesDatas map[string]io.Reader, into interface{}) (*http.Response, error) {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	var err error
+	for key, keyReader := range filesDatas {
+		var fw io.Writer
+		if x, ok := keyReader.(io.Closer); ok {
+			defer x.Close()
+		}
+		// the endpoint expects the filename to the be the key, not just a simple part name
+		if fw, err = w.CreateFormFile(key, key); err != nil {
+			return nil, err
+		}
+		if _, err = io.Copy(fw, keyReader); err != nil {
+			return nil, err
+		}
+	}
+	w.Close()
+
+	return r.execute(ctx, path, "POST", &b, into, func(req *http.Request) *http.Request {
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		return req
+	})
+}
+
+func jsonDecorator(req *http.Request) *http.Request {
+	req.Header.Set("Content-Type", "application/json")
+	return req
 }

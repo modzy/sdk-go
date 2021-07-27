@@ -110,12 +110,18 @@ type SubmitTextJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
 	Timeout int                `json:"timeout,omitempty"`
-	Input   TextInput          `json:"input"`
+	Input   TextInput          `json:"input,omitempty"`
 }
 
 type SubmitEmbeddedJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
 	Timeout int                `json:"timeout,omitempty"`
-	Input   EmbeddedInput      `json:"input"`
+	Input   EmbeddedInput      `json:"input,omitempty"`
+}
+
+type SubmitChunkedJob struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
 }

@@ -145,7 +145,7 @@ func TestDelete(t *testing.T) {
 
 func TestExecuteBodyStructCannotMarshal(t *testing.T) {
 	requestor := &requestor{}
-	_, err := requestor.execute(context.TODO(), "", "", cannotMarshal{}, nil)
+	_, err := requestor.execute(context.TODO(), "", "", cannotMarshal{}, nil, nil)
 	if err == nil {
 		t.Errorf("expected error")
 	}
@@ -153,7 +153,7 @@ func TestExecuteBodyStructCannotMarshal(t *testing.T) {
 
 func TestExecuteCannotBuildRequest(t *testing.T) {
 	requestor := &requestor{}
-	_, err := requestor.execute(context.TODO(), notParsablePath, "GET", nil, nil)
+	_, err := requestor.execute(context.TODO(), notParsablePath, "GET", nil, nil, nil)
 	if err == nil {
 		t.Errorf("expected error")
 	}
@@ -168,7 +168,7 @@ func TestExecuteFailureToExecute(t *testing.T) {
 	requestor := &requestor{
 		httpClient: defaultHTTPClient,
 	}
-	_, err := requestor.execute(context.TODO(), "http://nope", "GET", nil, nil)
+	_, err := requestor.execute(context.TODO(), "http://nope", "GET", nil, nil, nil)
 	if err == nil {
 		t.Errorf("expected error")
 	}
@@ -184,7 +184,7 @@ func TestExecuteWithModzyError(t *testing.T) {
 	requestor := &requestor{
 		httpClient: defaultHTTPClient,
 	}
-	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil, nil)
 	if modzyErr, is := err.(*ModzyHTTPError); !is {
 		t.Errorf("expected modzy error: %v", err)
 	} else {
@@ -203,9 +203,10 @@ func TestExecuteBad200Content(t *testing.T) {
 	requestor := &requestor{
 		httpClient: defaultHTTPClient,
 	}
-	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	var into map[string]interface{}
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, &into, nil)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Fatalf("expected error")
 	}
 	if !strings.Contains(err.Error(), "invalid character 'b'") {
 		t.Errorf("Did not get the expected error: %v", err)
@@ -221,7 +222,7 @@ func TestExecute204(t *testing.T) {
 	requestor := &requestor{
 		httpClient: defaultHTTPClient,
 	}
-	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil, nil)
 	if err != nil {
 		t.Errorf("did not expect error: %v", err)
 	}
@@ -244,7 +245,7 @@ func TestAuthorizationDecorator(t *testing.T) {
 			return toDecorate
 		},
 	}
-	resp, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	resp, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil, nil)
 	if err != nil {
 		t.Errorf("did not expect error: %v", err)
 	}
@@ -265,7 +266,7 @@ func TestExecuteWithDebugging(t *testing.T) {
 		requestDebugging:  true,
 		responseDebugging: true,
 	}
-	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil)
+	_, err := requestor.execute(context.TODO(), serv.URL, "GET", nil, nil, nil)
 	if err != nil {
 		t.Errorf("did not expect error: %v", err)
 	}

@@ -1,11 +1,13 @@
 package modzy
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"time"
 
+	"github.com/docker/go-units"
 	"github.com/modzy/go-sdk/model"
 	"github.com/pkg/errors"
 )
@@ -15,7 +17,7 @@ type JobsClient interface {
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
-	// SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
+	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
@@ -151,6 +153,93 @@ func (c *standardJobsClient) SubmitJobEmbedded(ctx context.Context, input *Submi
 	}, nil
 }
 
+func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error) {
+	features, err := c.GetJobFeatures(ctx)
+	if err != nil {
+		return nil, err
+	}
+	maxChunkSize, err := units.FromHumanSize(features.Features.InputChunkMaximumSize)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to parse InputChunkMaximumSize as an integer")
+	}
+	if maxChunkSize == 0 {
+		maxChunkSize = 1024 * 1024
+	}
+	chunkSize := int64(input.ChunkSize)
+	if chunkSize == 0 || chunkSize > maxChunkSize {
+		chunkSize = maxChunkSize
+	}
+
+	noInputJob := model.SubmitChunkedJob{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+	}
+	var response model.SubmitJobResponse
+	if _, err := c.baseClient.requestor.Post(ctx, "/api/jobs", noInputJob, &response); err != nil {
+		return nil, errors.WithMessage(err, "failed to post open job before posting input chunks")
+	}
+	jobActions := NewJobActions(c.baseClient, response.JobIdentifier)
+
+	chunkErr := c.postInputsAsChunks(ctx, response.JobIdentifier, chunkSize, input.Inputs)
+	if chunkErr != nil {
+		// uploading the inputs failed, close the job
+		_, _ = jobActions.Cancel(ctx)
+		return nil, errors.WithMessage(err, "job canceled due to failure to upload data")
+	} else {
+		// close the job since everything is posted
+		closeURL := fmt.Sprintf("/api/jobs/%s/close", response.JobIdentifier)
+		if _, err := c.baseClient.requestor.Post(ctx, closeURL, noInputJob, &response); err != nil {
+			return nil, errors.WithMessage(err, "failed to close open job after sucessfully uploading inputs")
+		}
+	}
+
+	return &SubmitJobFileOutput{
+		Response:   response,
+		JobActions: jobActions,
+	}, nil
+}
+
+func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID string, chunkSize int64, inputs map[string]FileInputItem) error {
+	// go through each input and submit the data in chunks as necessary
+	for k, v := range inputs {
+		for innerK, innerV := range v {
+			dataReader, err := innerV()
+			if err != nil {
+				return errors.WithMessagef(err, "failed to get data reader for item %s/%s", k, innerK)
+			}
+
+			// post as many chunks as necessary
+			done := false
+			for {
+				if done {
+					break
+				}
+				buf := make([]byte, chunkSize)
+				n, err := io.ReadFull(dataReader, buf)
+				if err != nil {
+					if err == io.ErrUnexpectedEOF || err == io.EOF {
+						done = true
+					} else {
+						return errors.WithMessage(err, "failed reading a chunk of data")
+					}
+				}
+				if n > 0 {
+					chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
+					chunkReader := bytes.NewReader(buf)
+					if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
+						return errors.WithMessage(err, "failed post a chunk of data")
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // WaitForJobCompletion will wait until the provided job is done processing.
 // The minimum pollInterval is 5 seconds.
 // If the provided context is canceled, this wait will error.
@@ -172,6 +261,9 @@ func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *Wa
 				job.Details.Status == JobStatusTimedOut {
 				// job is done
 				return job, nil
+			}
+			if job.Details.Status == JobStatusOpen {
+				return nil, fmt.Errorf("Job is currently OPEN and will never complete")
 			}
 			// not done -- wait and try again
 			timer.Reset(pollInterval)
