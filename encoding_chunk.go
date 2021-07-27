@@ -15,8 +15,6 @@ func ChunkEncodeFile(file *os.File) ChunkEncodable {
 	}
 }
 
-// ChunkEncodeFilename will attempt to detect the mimeType if not provided based
-// on the filename extension.
 func ChunkEncodeFilename(filename string) ChunkEncodable {
 	return func() (io.Reader, error) {
 		file, err := os.Open(filename)
