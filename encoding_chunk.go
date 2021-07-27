@@ -9,18 +9,18 @@ import (
 
 type ChunkEncodable func() (io.Reader, error)
 
-func ChunkEncodeFile(file *os.File) ChunkEncodable {
+func ChunkReader(data io.Reader) ChunkEncodable {
 	return func() (io.Reader, error) {
-		return file, nil
+		return data, nil
 	}
 }
 
-func ChunkEncodeFilename(filename string) ChunkEncodable {
+func ChunkFile(filename string) ChunkEncodable {
 	return func() (io.Reader, error) {
 		file, err := os.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
-		return ChunkEncodeFile(file)()
+		return ChunkReader(file)()
 	}
 }

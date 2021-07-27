@@ -31,9 +31,10 @@ func main() {
 
 	// listJobsHistory(client)
 	// errorChecking()
+	submitExample(client, false)
 	// submitExampleText(client, false)
 	// submitExampleEmbedded(client, false)
-	submitExampleChunked(client, false)
+	// submitExampleChunked(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -142,7 +143,7 @@ func submitExampleEmbedded(client modzy.Client, cancel bool) {
 				"image": modzy.URIEncodedString(SmilingFace),
 			},
 			"image-2": {
-				"image": modzy.URIEncodeFilename("success_kid.png", ""),
+				"image": modzy.URIEncodeFile("success_kid.png", ""),
 			},
 		},
 	})
@@ -169,7 +170,34 @@ func submitExampleChunked(client modzy.Client, cancel bool) {
 		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
 		Inputs: map[string]modzy.FileInputItem{
 			"image-1": {
-				"image": modzy.ChunkEncodeFilename("success_kid.png"),
+				"image": modzy.ChunkFile("success_kid.png"),
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit chunked job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func submitExample(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
+	logrus.Info("Will submit chunked job")
+	submittedJob, err := client.Jobs().SubmitJob(ctx, &modzy.SubmitJobInput{
+		ModelIdentifier: model.Details.ModelID,
+		ModelVersion:    model.Details.LatestVersion,
+		Timeout:         time.Minute * 5,
+		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
+		Inputs: map[string]modzy.SubmitJobInputItem{
+			"image-1": {
+				"image": modzy.JobInputFile("success_kid.png"),
 			},
 		},
 	})

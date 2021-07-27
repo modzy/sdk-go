@@ -1,7 +1,6 @@
 package modzy
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -13,58 +12,60 @@ import (
 
 type URIEncodable func() (io.Reader, error)
 
+func URIEncodedReader(alreadyEncoded io.Reader) URIEncodable {
+	return func() (io.Reader, error) {
+		return alreadyEncoded, nil
+	}
+}
+
 func URIEncodedString(alreadyEncoded string) URIEncodable {
 	return func() (io.Reader, error) {
 		return strings.NewReader(alreadyEncoded), nil
 	}
 }
 
-func URIEncodeBytes(notEncodedBytes []byte, mimeType string) URIEncodable {
+func URIEncodedFile(alreadyEncodedFilename string) URIEncodable {
 	return func() (io.Reader, error) {
-		return URIEncodeReader(bytes.NewReader(notEncodedBytes), mimeType)
+		file, err := os.Open(alreadyEncodedFilename)
+		if err != nil {
+			return nil, errors.WithMessagef(err, "Failed to open file: %s", alreadyEncodedFilename)
+		}
+		return URIEncodedReader(file)()
+	}
+}
+
+func URIEncodeReader(notEncodedReader io.Reader, mimeType string) URIEncodable {
+	return func() (io.Reader, error) {
+		if mimeType == "" {
+			mimeType = "application/octet-stream"
+		}
+		sourceBytes, err := io.ReadAll(notEncodedReader)
+		if err != nil {
+			return nil, errors.WithMessage(err, "failed to read source data")
+		}
+		sourceBase64 := base64.StdEncoding.EncodeToString(sourceBytes)
+		return strings.NewReader(fmt.Sprintf(`data:%s;base64,%s`, mimeType, sourceBase64)), nil
 	}
 }
 
 func URIEncodeString(notEncodedString string, mimeType string) URIEncodable {
-	return func() (io.Reader, error) {
-		return URIEncodeReader(strings.NewReader(notEncodedString), mimeType)
-	}
+	return URIEncodeReader(strings.NewReader(notEncodedString), mimeType)
 }
 
-func URIEncodeFile(file *os.File, mimeType string) URIEncodable {
+func URIEncodeFile(filename string, mimeType string) URIEncodable {
 	return func() (io.Reader, error) {
-		return URIEncodeReader(file, mimeType)
-	}
-}
-
-// URIEncodeFilename will attempt to detect the mimeType if not provided based
-// on the filename extension.
-func URIEncodeFilename(filename string, mimeType string) URIEncodable {
-	return func() (io.Reader, error) {
+		if mimeType == "" {
+			mimeType = detectMimeType(filename)
+		}
 		file, err := os.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
-		if mimeType == "" {
-			mimeType = DetectMimeType(filename)
-		}
-		return URIEncodeFile(file, mimeType)()
+		return URIEncodeReader(file, mimeType)()
 	}
 }
 
-func URIEncodeReader(source io.Reader, mimeType string) (io.Reader, error) {
-	if mimeType == "" {
-		mimeType = "application/octet-stream"
-	}
-	sourceBytes, err := io.ReadAll(source)
-	if err != nil {
-		return nil, errors.WithMessage(err, "failed to read source data")
-	}
-	sourceBase64 := base64.StdEncoding.EncodeToString(sourceBytes)
-	return strings.NewReader(fmt.Sprintf(`data:%s;base64,%s`, mimeType, sourceBase64)), nil
-}
-
-func DetectMimeType(filename string) string {
+func detectMimeType(filename string) string {
 	split := strings.Split(filename, ".")
 	extension := split[len(split)-1]
 
