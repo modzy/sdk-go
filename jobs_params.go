@@ -79,6 +79,24 @@ type ListJobsHistoryOutput struct {
 	NextPage *ListJobsHistoryInput `json:"nextPage"`
 }
 
+type SubmitJobInputItem map[string]JobInputable
+
+type SubmitJobInput struct {
+	ModelIdentifier string
+	ModelVersion    string
+	Explain         bool
+	Timeout         time.Duration
+	// ChunkSize (in bytes) is optional -- if not provided it will use the configured MaximumChunkSize.
+	// If provided it will be limited to the configured maximum;
+	ChunkSize int
+	Inputs    map[string]SubmitJobInputItem
+}
+
+type SubmitJobOutput struct {
+	Response model.SubmitJobResponse
+	JobActions
+}
+
 type TextInputItem map[string]string
 
 type SubmitJobTextInput struct {
@@ -89,10 +107,7 @@ type SubmitJobTextInput struct {
 	Inputs          map[string]TextInputItem
 }
 
-type SubmitJobTextOutput struct {
-	Response model.SubmitJobResponse
-	JobActions
-}
+type SubmitJobTextOutput = SubmitJobOutput
 
 type EmbeddedInputItem map[string]URIEncodable
 
@@ -104,10 +119,7 @@ type SubmitJobEmbeddedInput struct {
 	Inputs          map[string]EmbeddedInputItem
 }
 
-type SubmitJobEmbeddedOutput struct {
-	Response model.SubmitJobResponse
-	JobActions
-}
+type SubmitJobEmbeddedOutput = SubmitJobOutput
 
 type FileInputItem map[string]ChunkEncodable
 
@@ -122,10 +134,7 @@ type SubmitJobFileInput struct {
 	Inputs    map[string]FileInputItem
 }
 
-type SubmitJobFileOutput struct {
-	Response model.SubmitJobResponse
-	JobActions
-}
+type SubmitJobFileOutput = SubmitJobOutput
 
 type CancelJobInput struct {
 	JobIdentifier string `json:"jobIdentifier"`

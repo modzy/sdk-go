@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"time"
 
 	"github.com/docker/go-units"
@@ -15,6 +16,7 @@ import (
 type JobsClient interface {
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
+	SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error)
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
@@ -67,6 +69,77 @@ func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJob
 		Jobs:     items,
 		NextPage: nextPage,
 	}, nil
+}
+
+func (c *standardJobsClient) SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error) {
+	textInputs := map[string]TextInputItem{}
+	embeddedInputs := map[string]EmbeddedInputItem{}
+	chunkedInputs := map[string]FileInputItem{}
+
+	for k, v := range input.Inputs {
+		for innerK, innerV := range v {
+			jobInputDescription, err := innerV()
+			if err != nil {
+				return nil, errors.WithMessagef(err, "failed to get data reader for item %s/%s", k, innerK)
+			}
+
+			switch jobInputDescription.Type {
+			case jobInputableTypeString:
+				if _, has := textInputs[k]; !has {
+					textInputs[k] = TextInputItem{}
+				}
+				if fullStringBytes, err := ioutil.ReadAll(jobInputDescription.Data); err != nil {
+					return nil, errors.WithMessagef(err, "failed to get data for item %s/%s", k, innerK)
+				} else {
+					textInputs[k][innerK] = string(fullStringBytes)
+				}
+
+			case jobInputableTypeEmbedded:
+				if _, has := embeddedInputs[k]; !has {
+					embeddedInputs[k] = EmbeddedInputItem{}
+				}
+				embeddedInputs[k][innerK] = URIEncodedReader(jobInputDescription.Data)
+
+			case jobInputableTypeByte:
+				if _, has := chunkedInputs[k]; !has {
+					chunkedInputs[k] = FileInputItem{}
+				}
+				chunkedInputs[k][innerK] = ChunkReader(jobInputDescription.Data)
+			}
+		}
+	}
+
+	if len(textInputs) > 0 {
+		return c.SubmitJobText(ctx, &SubmitJobTextInput{
+			ModelIdentifier: input.ModelIdentifier,
+			ModelVersion:    input.ModelVersion,
+			Explain:         input.Explain,
+			Timeout:         input.Timeout,
+			Inputs:          textInputs,
+		})
+	}
+
+	if len(embeddedInputs) > 0 {
+		return c.SubmitJobEmbedded(ctx, &SubmitJobEmbeddedInput{
+			ModelIdentifier: input.ModelIdentifier,
+			ModelVersion:    input.ModelVersion,
+			Explain:         input.Explain,
+			Timeout:         input.Timeout,
+			Inputs:          embeddedInputs,
+		})
+	}
+
+	if len(chunkedInputs) > 0 {
+		return c.SubmitJobFile(ctx, &SubmitJobFileInput{
+			ModelIdentifier: input.ModelIdentifier,
+			ModelVersion:    input.ModelVersion,
+			Explain:         input.Explain,
+			Timeout:         input.Timeout,
+			Inputs:          chunkedInputs,
+		})
+	}
+
+	return nil, fmt.Errorf("No inputs were provided")
 }
 
 func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error) {
@@ -154,20 +227,9 @@ func (c *standardJobsClient) SubmitJobEmbedded(ctx context.Context, input *Submi
 }
 
 func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error) {
-	features, err := c.GetJobFeatures(ctx)
+	chunkSize, err := c.getMaxChunkSize(ctx, input.ChunkSize)
 	if err != nil {
-		return nil, err
-	}
-	maxChunkSize, err := units.FromHumanSize(features.Features.InputChunkMaximumSize)
-	if err != nil {
-		return nil, errors.WithMessage(err, "failed to parse InputChunkMaximumSize as an integer")
-	}
-	if maxChunkSize == 0 {
-		maxChunkSize = 1024 * 1024
-	}
-	chunkSize := int64(input.ChunkSize)
-	if chunkSize == 0 || chunkSize > maxChunkSize {
-		chunkSize = maxChunkSize
+		return nil, errors.WithMessage(err, "Failed to get max chunk size")
 	}
 
 	noInputJob := model.SubmitChunkedJob{
@@ -203,6 +265,25 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 	}, nil
 }
 
+func (c *standardJobsClient) getMaxChunkSize(ctx context.Context, defaultChunkSize int) (int64, error) {
+	features, err := c.GetJobFeatures(ctx)
+	if err != nil {
+		return 0, err
+	}
+	maxChunkSize, err := units.FromHumanSize(features.Features.InputChunkMaximumSize)
+	if err != nil {
+		return 0, errors.WithMessage(err, "failed to parse InputChunkMaximumSize as an integer")
+	}
+	if maxChunkSize == 0 {
+		maxChunkSize = 1024 * 1024
+	}
+	chunkSize := int64(defaultChunkSize)
+	if chunkSize == 0 || chunkSize > maxChunkSize {
+		chunkSize = maxChunkSize
+	}
+	return chunkSize, nil
+}
+
 func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID string, chunkSize int64, inputs map[string]FileInputItem) error {
 	// go through each input and submit the data in chunks as necessary
 	for k, v := range inputs {
@@ -213,27 +294,27 @@ func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID strin
 			}
 
 			// post as many chunks as necessary
-			done := false
+			buf, err := ioutil.ReadAll(dataReader)
+			if err != nil {
+				return errors.WithMessage(err, "failed reading a chunk of data")
+			}
+			start := 0
+			end := 0
 			for {
-				if done {
+				end = start + int(chunkSize)
+				if end > len(buf) {
+					end = len(buf)
+				}
+				if start == end {
 					break
 				}
-				buf := make([]byte, chunkSize)
-				n, err := io.ReadFull(dataReader, buf)
-				if err != nil {
-					if err == io.ErrUnexpectedEOF || err == io.EOF {
-						done = true
-					} else {
-						return errors.WithMessage(err, "failed reading a chunk of data")
-					}
+				chunk := buf[start:end]
+				chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
+				chunkReader := bytes.NewReader(chunk)
+				if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
+					return errors.WithMessage(err, "failed post a chunk of data")
 				}
-				if n > 0 {
-					chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
-					chunkReader := bytes.NewReader(buf)
-					if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
-						return errors.WithMessage(err, "failed post a chunk of data")
-					}
-				}
+				start = end
 			}
 		}
 	}
