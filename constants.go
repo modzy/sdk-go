@@ -22,4 +22,5 @@ const (
 	JobStatusCompleted  = "COMPLETED"
 	JobStatusCanceled   = "CANCELED"
 	JobStatusTimedOut   = "TIMEDOUT"
+	JobStatusOpen       = "OPEN"
 )
