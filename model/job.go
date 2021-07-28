@@ -99,9 +99,29 @@ type TextInput struct {
 	Sources map[string]TextInputItem `json:"sources"`
 }
 
+type EmbeddedInputItem map[string]string
+
+type EmbeddedInput struct {
+	Type    string                       `json:"type"`
+	Sources map[string]EmbeddedInputItem `json:"sources"`
+}
+
 type SubmitTextJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
 	Timeout int                `json:"timeout,omitempty"`
-	Input   TextInput          `json:"input"`
+	Input   TextInput          `json:"input,omitempty"`
+}
+
+type SubmitEmbeddedJob struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
+	Input   EmbeddedInput      `json:"input,omitempty"`
+}
+
+type SubmitChunkedJob struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
 }

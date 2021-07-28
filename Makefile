@@ -27,4 +27,4 @@ clean:
 
 .PHONY: example
 example:
-	@go run example/main.go
+	@cd example && go run main.go

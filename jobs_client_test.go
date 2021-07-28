@@ -129,6 +129,53 @@ func TestSubmitJobText(t *testing.T) {
 	}
 }
 
+func TestSubmitJobEmbeddedHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobEmbedded(context.TODO(), &SubmitJobEmbeddedInput{})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestSubmitJobEmbedded(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("expected method to be POST, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/jobs" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`{"accountIdentifier": "jsonAccountID"}`))
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	out, err := client.Jobs().SubmitJobEmbedded(context.TODO(), &SubmitJobEmbeddedInput{
+		ModelIdentifier: "modelID",
+		ModelVersion:    "modelVersion",
+		Explain:         true,
+		Timeout:         time.Second * 9,
+		Inputs: map[string]EmbeddedInputItem{
+			"input-1": {
+				"input-1.1": URIEncodeString("input-1.1-value", ""),
+				"input-1.2": URIEncodeString("input-1.2-value", ""),
+			},
+			"input-2": {
+				"input-2.1": URIEncodeString("input-2.1-value", ""),
+			},
+		},
+	})
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Response.AccountIdentifier != "jsonAccountID" {
+		t.Errorf("response not parsed")
+	}
+}
+
 func TestWaitForJobCompletion(t *testing.T) {
 	checked := 0
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -41,6 +41,16 @@ func TestJobsClientFake(t *testing.T) {
 			}
 			return nil, nil
 		},
+		SubmitJobEmbeddedFunc: func(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			if input == nil {
+				t.Errorf("input was not passed through")
+			}
+			return nil, nil
+		},
 		WaitForJobCompletionFunc: func(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error) {
 			calls++
 			if ctx != expectedCtx {
@@ -86,12 +96,13 @@ func TestJobsClientFake(t *testing.T) {
 	fake.GetJobDetails(expectedCtx, &GetJobDetailsInput{})
 	fake.ListJobsHistory(expectedCtx, &ListJobsHistoryInput{})
 	fake.SubmitJobText(expectedCtx, &SubmitJobTextInput{})
+	fake.SubmitJobEmbedded(expectedCtx, &SubmitJobEmbeddedInput{})
 	fake.WaitForJobCompletion(expectedCtx, &WaitForJobCompletionInput{}, time.Second*12)
 	fake.CancelJob(expectedCtx, &CancelJobInput{})
 	fake.GetJobResults(expectedCtx, &GetJobResultsInput{})
 	fake.GetJobFeatures(expectedCtx)
 
-	if calls != 7 {
+	if calls != 8 {
 		t.Errorf("Did not call all of the funcs: %d", calls)
 	}
 }

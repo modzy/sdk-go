@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,8 +31,10 @@ func main() {
 
 	// listJobsHistory(client)
 	// errorChecking()
+	submitExample(client, false)
 	// submitExampleText(client, false)
-	// submitExampleText(client, false)
+	// submitExampleEmbedded(client, false)
+	// submitExampleChunked(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -43,7 +46,7 @@ func main() {
 	// describeModelByName(client, "Sentiment Analysis")
 	// listModelVersions(client, "ed542963de")
 	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
-	getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
+	// getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -96,7 +99,7 @@ func submitExampleText(client modzy.Client, cancel bool) {
 	submittedJob, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 		ModelIdentifier: "ed542963de",
 		ModelVersion:    "0.0.27",
-		Timeout:         time.Second * 30,
+		Timeout:         time.Minute * 5,
 		Inputs: map[string]modzy.TextInputItem{
 			"happy-text": {
 				"input.txt": "I love AI! :)",
@@ -117,11 +120,100 @@ func submitExampleText(client modzy.Client, cancel bool) {
 		return
 	}
 
-	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("Text job submitted")
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("text job submitted")
+	afterSubmit(client, cancel, submittedJob)
+}
 
+//go:embed smiling_face.encoded
+var SmilingFace string
+
+func submitExampleEmbedded(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
+	logrus.Info("Will submit example embedded job")
+	submittedJob, err := client.Jobs().SubmitJobEmbedded(ctx, &modzy.SubmitJobEmbeddedInput{
+		ModelIdentifier: model.Details.ModelID,
+		ModelVersion:    model.Details.LatestVersion,
+		Timeout:         time.Minute * 5,
+		Inputs: map[string]modzy.EmbeddedInputItem{
+			"image-1": {
+				"image": modzy.URIEncodedString(SmilingFace),
+			},
+			"image-2": {
+				"image": modzy.URIEncodeFile("success_kid.png", ""),
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit embedded job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("embedded job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func submitExampleChunked(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
+	logrus.Info("Will submit chunked job")
+	submittedJob, err := client.Jobs().SubmitJobFile(ctx, &modzy.SubmitJobFileInput{
+		ModelIdentifier: model.Details.ModelID,
+		ModelVersion:    model.Details.LatestVersion,
+		Timeout:         time.Minute * 5,
+		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
+		Inputs: map[string]modzy.FileInputItem{
+			"image-1": {
+				"image": modzy.ChunkFile("success_kid.png"),
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit chunked job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func submitExample(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
+	logrus.Info("Will submit chunked job")
+	submittedJob, err := client.Jobs().SubmitJob(ctx, &modzy.SubmitJobInput{
+		ModelIdentifier: model.Details.ModelID,
+		ModelVersion:    model.Details.LatestVersion,
+		Timeout:         time.Minute * 5,
+		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
+		Inputs: map[string]modzy.SubmitJobInputItem{
+			"image-1": {
+				"image": modzy.JobInputFile("success_kid.png"),
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit chunked job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func afterSubmit(client modzy.Client, cancel bool, job modzy.JobActions) {
 	if cancel {
 		logrus.Info("Will cancel job")
-		cancelOut, err := submittedJob.Cancel(ctx)
+		cancelOut, err := job.Cancel(ctx)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to cancel job")
 		}
@@ -129,13 +221,13 @@ func submitExampleText(client modzy.Client, cancel bool) {
 		return
 	} else {
 		logrus.Info("Will wait until job completes")
-		jobDetails, err := submittedJob.WaitForCompletion(ctx, time.Second*5)
+		jobDetails, err := job.WaitForCompletion(ctx, time.Second*5)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to wait for job completion")
 			return
 		}
 		logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
-		jobResults, err := submittedJob.GetResults(ctx)
+		jobResults, err := job.GetResults(ctx)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Failed to get job results")
 			return
