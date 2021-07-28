@@ -26,17 +26,17 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
 	}
 
 	// listJobsHistory(client)
 	// errorChecking()
 	// submitExample(client, false)
 	// submitExampleText(client, false)
-	// submitExampleEmbedded(client, false)
+	// submitExampleEmbedded(client, true)
 	// submitExampleChunked(client, false)
-	// submitExampleS3(client, false)
-	submitExampleJDBC(client, false)
+	submitExampleS3(client, false)
+	// submitExampleJDBC(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -130,15 +130,10 @@ func submitExampleText(client modzy.Client, cancel bool) {
 var SmilingFace string
 
 func submitExampleEmbedded(client modzy.Client, cancel bool) {
-	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
-	if err != nil {
-		logrus.Fatalf("Failed to read model details")
-		return
-	}
 	logrus.Info("Will submit example embedded job")
 	submittedJob, err := client.Jobs().SubmitJobEmbedded(ctx, &modzy.SubmitJobEmbeddedInput{
-		ModelIdentifier: model.Details.ModelID,
-		ModelVersion:    model.Details.LatestVersion,
+		ModelIdentifier: "e3f73163d3",
+		ModelVersion:    "0.0.1",
 		Timeout:         time.Minute * 5,
 		Inputs: map[string]modzy.EmbeddedInputItem{
 			"image-1": {
@@ -159,15 +154,10 @@ func submitExampleEmbedded(client modzy.Client, cancel bool) {
 }
 
 func submitExampleChunked(client modzy.Client, cancel bool) {
-	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
-	if err != nil {
-		logrus.Fatalf("Failed to read model details")
-		return
-	}
 	logrus.Info("Will submit chunked job")
 	submittedJob, err := client.Jobs().SubmitJobFile(ctx, &modzy.SubmitJobFileInput{
-		ModelIdentifier: model.Details.ModelID,
-		ModelVersion:    model.Details.LatestVersion,
+		ModelIdentifier: "e3f73163d3",
+		ModelVersion:    "0.0.1",
 		Timeout:         time.Minute * 5,
 		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
 		Inputs: map[string]modzy.FileInputItem{
@@ -186,15 +176,10 @@ func submitExampleChunked(client modzy.Client, cancel bool) {
 }
 
 func submitExampleS3(client modzy.Client, cancel bool) {
-	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
-	if err != nil {
-		logrus.Fatalf("Failed to read model details")
-		return
-	}
 	logrus.Info("Will submit s3 job")
 	submittedJob, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
-		ModelIdentifier:    model.Details.ModelID,
-		ModelVersion:       model.Details.LatestVersion,
+		ModelIdentifier:    "e3f73163d3",
+		ModelVersion:       "0.0.1",
 		Timeout:            time.Minute * 5,
 		AWSAccessKeyID:     os.Getenv("MODZY_AWS_ACCESS_KEY_ID"),
 		AWSSecretAccessKey: os.Getenv("MODZY_AWS_SECRET_ACCESS_KEY"),
@@ -215,7 +200,7 @@ func submitExampleS3(client modzy.Client, cancel bool) {
 }
 
 func submitExampleJDBC(client modzy.Client, cancel bool) {
-	logrus.Info("Will submit s3 job")
+	logrus.Info("Will submit jdbc job")
 	submittedJob, err := client.Jobs().SubmitJobJDBC(ctx, &modzy.SubmitJobJDBCInput{
 		ModelIdentifier:   "ed542963de",
 		ModelVersion:      "0.0.27",
@@ -235,15 +220,10 @@ func submitExampleJDBC(client modzy.Client, cancel bool) {
 }
 
 func submitExample(client modzy.Client, cancel bool) {
-	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
-	if err != nil {
-		logrus.Fatalf("Failed to read model details")
-		return
-	}
 	logrus.Info("Will submit chunked job")
 	submittedJob, err := client.Jobs().SubmitJob(ctx, &modzy.SubmitJobInput{
-		ModelIdentifier: model.Details.ModelID,
-		ModelVersion:    model.Details.LatestVersion,
+		ModelIdentifier: "e3f73163d3",
+		ModelVersion:    "0.0.1",
 		Timeout:         time.Minute * 5,
 		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
 		Inputs: map[string]modzy.SubmitJobInputItem{
