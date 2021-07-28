@@ -106,6 +106,21 @@ type EmbeddedInput struct {
 	Sources map[string]EmbeddedInputItem `json:"sources"`
 }
 
+type S3InputItemKey struct {
+	Bucket string `json:"bucket"`
+	Key    string `json:"key"`
+}
+
+type S3InputItem map[string]S3InputItemKey
+
+type S3Input struct {
+	Type            string                 `json:"type"`
+	AccessKeyID     string                 `json:"accessKeyID,omitempty"`
+	SecretAccessKey string                 `json:"secretAccessKey,omitempty"`
+	Region          string                 `json:"region,omitempty"`
+	Sources         map[string]S3InputItem `json:"sources"`
+}
+
 type SubmitTextJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
@@ -124,4 +139,11 @@ type SubmitChunkedJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
 	Timeout int                `json:"timeout,omitempty"`
+}
+
+type SubmitS3Job struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
+	Input   S3Input            `json:"input,omitempty"`
 }

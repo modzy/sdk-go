@@ -20,7 +20,7 @@ type JobsClient interface {
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
-	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
+	SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
 	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
@@ -262,6 +262,53 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 	return &SubmitJobFileOutput{
 		Response:   response,
 		JobActions: jobActions,
+	}, nil
+}
+
+func (c *standardJobsClient) SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error) {
+	toPostSources := map[string]model.S3InputItem{}
+	for k, v := range input.Inputs {
+		input := map[string]model.S3InputItemKey{}
+		for innerK, innerV := range v {
+			s3Location, err := innerV()
+			if err != nil {
+				return nil, errors.WithMessagef(err, "Failed to get s3 key definition for item %s/%s", k, innerK)
+			}
+			input[innerK] = model.S3InputItemKey{
+				Bucket: s3Location.Bucket,
+				Key:    s3Location.Key,
+			}
+		}
+		toPostSources[k] = input
+	}
+
+	toPost := model.SubmitS3Job{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+		Input: model.S3Input{
+			Type:            "aws-s3",
+			AccessKeyID:     input.AWSAccessKeyID,
+			SecretAccessKey: input.AWSSecretAccessKey,
+			Region:          input.AWSRegion,
+			Sources:         toPostSources,
+		},
+	}
+
+	var response model.SubmitJobResponse
+
+	url := "/api/jobs"
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SubmitJobEmbeddedOutput{
+		Response:   response,
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
 	}, nil
 }
 

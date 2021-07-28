@@ -136,6 +136,21 @@ type SubmitJobFileInput struct {
 
 type SubmitJobFileOutput = SubmitJobOutput
 
+type S3InputItem map[string]S3Inputable
+
+type SubmitJobS3Input struct {
+	ModelIdentifier    string
+	ModelVersion       string
+	Explain            bool
+	Timeout            time.Duration
+	AWSAccessKeyID     string
+	AWSSecretAccessKey string
+	AWSRegion          string
+	Inputs             map[string]S3InputItem
+}
+
+type SubmitJobS3Output = SubmitJobOutput
+
 type CancelJobInput struct {
 	JobIdentifier string `json:"jobIdentifier"`
 }

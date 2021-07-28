@@ -26,15 +26,16 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
+		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
 	}
 
 	// listJobsHistory(client)
 	// errorChecking()
-	submitExample(client, false)
+	// submitExample(client, false)
 	// submitExampleText(client, false)
 	// submitExampleEmbedded(client, false)
 	// submitExampleChunked(client, false)
+	submitExampleS3(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -183,6 +184,35 @@ func submitExampleChunked(client modzy.Client, cancel bool) {
 	afterSubmit(client, cancel, submittedJob.JobActions)
 }
 
+func submitExampleS3(client modzy.Client, cancel bool) {
+	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
+	if err != nil {
+		logrus.Fatalf("Failed to read model details")
+		return
+	}
+	logrus.Info("Will submit s3 job")
+	submittedJob, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
+		ModelIdentifier:    model.Details.ModelID,
+		ModelVersion:       model.Details.LatestVersion,
+		Timeout:            time.Minute * 5,
+		AWSAccessKeyID:     os.Getenv("MODZY_AWS_ACCESS_KEY_ID"),
+		AWSSecretAccessKey: os.Getenv("MODZY_AWS_SECRET_ACCESS_KEY"),
+		AWSRegion:          os.Getenv("MODZY_AWS_REGION"),
+		Inputs: map[string]modzy.S3InputItem{
+			"image-1": {
+				"image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit s3 job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
 func submitExample(client modzy.Client, cancel bool) {
 	model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "e3f73163d3"})
 	if err != nil {
@@ -199,10 +229,13 @@ func submitExample(client modzy.Client, cancel bool) {
 			"image-1": {
 				"image": modzy.JobInputFile("success_kid.png"),
 			},
+			"image-2": {
+				// "image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
+			},
 		},
 	})
 	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to submit chunked job")
+		logrus.WithError(err).Fatalf("Failed to submit job")
 		return
 	}
 
