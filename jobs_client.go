@@ -21,7 +21,7 @@ type JobsClient interface {
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
 	SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
-	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
+	SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
@@ -295,6 +295,38 @@ func (c *standardJobsClient) SubmitJobS3(ctx context.Context, input *SubmitJobS3
 			SecretAccessKey: input.AWSSecretAccessKey,
 			Region:          input.AWSRegion,
 			Sources:         toPostSources,
+		},
+	}
+
+	var response model.SubmitJobResponse
+
+	url := "/api/jobs"
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SubmitJobEmbeddedOutput{
+		Response:   response,
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
+	}, nil
+}
+
+func (c *standardJobsClient) SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error) {
+	toPost := model.SubmitJDBCJob{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+		Input: model.JDBCInput{
+			Type:     "jdbc",
+			URL:      input.JDBCConnectionURL,
+			Username: input.DatabaseUsername,
+			Password: input.DatabasePassword,
+			Driver:   input.JDBCDriver,
+			Query:    input.Query,
 		},
 	}
 

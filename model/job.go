@@ -121,6 +121,15 @@ type S3Input struct {
 	Sources         map[string]S3InputItem `json:"sources"`
 }
 
+type JDBCInput struct {
+	Type     string `json:"type"`
+	URL      string `json:"url,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	Driver   string `json:"driver,omitempty"`
+	Query    string `json:"query,omitempty"`
+}
+
 type SubmitTextJob struct {
 	Model   SubmitJobModelInfo `json:"model"`
 	Explain bool               `json:"explain,omitempty"`
@@ -146,4 +155,11 @@ type SubmitS3Job struct {
 	Explain bool               `json:"explain,omitempty"`
 	Timeout int                `json:"timeout,omitempty"`
 	Input   S3Input            `json:"input,omitempty"`
+}
+
+type SubmitJDBCJob struct {
+	Model   SubmitJobModelInfo `json:"model"`
+	Explain bool               `json:"explain,omitempty"`
+	Timeout int                `json:"timeout,omitempty"`
+	Input   JDBCInput          `json:"input,omitempty"`
 }

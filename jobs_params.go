@@ -151,6 +151,20 @@ type SubmitJobS3Input struct {
 
 type SubmitJobS3Output = SubmitJobOutput
 
+type SubmitJobJDBCInput struct {
+	ModelIdentifier   string
+	ModelVersion      string
+	Explain           bool
+	Timeout           time.Duration
+	JDBCConnectionURL string
+	DatabaseUsername  string
+	DatabasePassword  string
+	JDBCDriver        string
+	Query             string
+}
+
+type SubmitJobJDBCOutput = SubmitJobOutput
+
 type CancelJobInput struct {
 	JobIdentifier string `json:"jobIdentifier"`
 }

@@ -35,7 +35,8 @@ func main() {
 	// submitExampleText(client, false)
 	// submitExampleEmbedded(client, false)
 	// submitExampleChunked(client, false)
-	submitExampleS3(client, false)
+	// submitExampleS3(client, false)
+	submitExampleJDBC(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
 	// getRelatedModels(client, "ed542963de")
@@ -209,7 +210,27 @@ func submitExampleS3(client modzy.Client, cancel bool) {
 		return
 	}
 
-	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("s3 job submitted")
+	afterSubmit(client, cancel, submittedJob.JobActions)
+}
+
+func submitExampleJDBC(client modzy.Client, cancel bool) {
+	logrus.Info("Will submit s3 job")
+	submittedJob, err := client.Jobs().SubmitJobJDBC(ctx, &modzy.SubmitJobJDBCInput{
+		ModelIdentifier:   "ed542963de",
+		ModelVersion:      "0.0.27",
+		Timeout:           time.Minute * 5,
+		JDBCConnectionURL: "jdbc:postgresql://6.tcp.ngrok.io:11811/some_database",
+		JDBCDriver:        "org.postgresql.Driver",
+		DatabaseUsername:  "postgres",
+		DatabasePassword:  "password",
+		Query:             `select text as "input.txt" from some_schema.some_table`,
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit JDBC job")
+		return
+	}
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("JDBC job submitted")
 	afterSubmit(client, cancel, submittedJob.JobActions)
 }
 
