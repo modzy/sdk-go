@@ -206,7 +206,6 @@ func submitExampleJDBC(client modzy.Client, cancel bool) {
 		ModelVersion:      "0.0.27",
 		Timeout:           time.Minute * 5,
 		JDBCConnectionURL: "jdbc:postgresql://6.tcp.ngrok.io:11811/some_database",
-		JDBCDriver:        "org.postgresql.Driver",
 		DatabaseUsername:  "postgres",
 		DatabasePassword:  "password",
 		Query:             `select text as "input.txt" from some_schema.some_table`,
