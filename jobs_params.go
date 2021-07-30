@@ -159,7 +159,6 @@ type SubmitJobJDBCInput struct {
 	JDBCConnectionURL string
 	DatabaseUsername  string
 	DatabasePassword  string
-	JDBCDriver        string
 	Query             string
 }
 

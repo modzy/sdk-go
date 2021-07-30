@@ -31,6 +31,16 @@ func TestJobsClientFake(t *testing.T) {
 			}
 			return nil, nil
 		},
+		SubmitJobFunc: func(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			if input == nil {
+				t.Errorf("input was not passed through")
+			}
+			return nil, nil
+		},
 		SubmitJobTextFunc: func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error) {
 			calls++
 			if ctx != expectedCtx {
@@ -42,6 +52,36 @@ func TestJobsClientFake(t *testing.T) {
 			return nil, nil
 		},
 		SubmitJobEmbeddedFunc: func(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			if input == nil {
+				t.Errorf("input was not passed through")
+			}
+			return nil, nil
+		},
+		SubmitJobFileFunc: func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			if input == nil {
+				t.Errorf("input was not passed through")
+			}
+			return nil, nil
+		},
+		SubmitJobS3Func: func(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			if input == nil {
+				t.Errorf("input was not passed through")
+			}
+			return nil, nil
+		},
+		SubmitJobJDBCFunc: func(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error) {
 			calls++
 			if ctx != expectedCtx {
 				t.Errorf("not expected ctx")
@@ -95,14 +135,18 @@ func TestJobsClientFake(t *testing.T) {
 
 	fake.GetJobDetails(expectedCtx, &GetJobDetailsInput{})
 	fake.ListJobsHistory(expectedCtx, &ListJobsHistoryInput{})
+	fake.SubmitJob(expectedCtx, &SubmitJobInput{})
 	fake.SubmitJobText(expectedCtx, &SubmitJobTextInput{})
 	fake.SubmitJobEmbedded(expectedCtx, &SubmitJobEmbeddedInput{})
+	fake.SubmitJobFile(expectedCtx, &SubmitJobFileInput{})
+	fake.SubmitJobS3(expectedCtx, &SubmitJobS3Input{})
+	fake.SubmitJobJDBC(expectedCtx, &SubmitJobJDBCInput{})
 	fake.WaitForJobCompletion(expectedCtx, &WaitForJobCompletionInput{}, time.Second*12)
 	fake.CancelJob(expectedCtx, &CancelJobInput{})
 	fake.GetJobResults(expectedCtx, &GetJobResultsInput{})
 	fake.GetJobFeatures(expectedCtx)
 
-	if calls != 8 {
+	if calls != 12 {
 		t.Errorf("Did not call all of the funcs: %d", calls)
 	}
 }

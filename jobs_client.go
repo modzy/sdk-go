@@ -250,12 +250,12 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 	if chunkErr != nil {
 		// uploading the inputs failed, close the job
 		_, _ = jobActions.Cancel(ctx)
-		return nil, errors.WithMessage(err, "job canceled due to failure to upload data")
+		return nil, errors.WithMessage(chunkErr, "job canceled due to failure to upload data")
 	} else {
 		// close the job since everything is posted
 		closeURL := fmt.Sprintf("/api/jobs/%s/close", response.JobIdentifier)
-		if _, err := c.baseClient.requestor.Post(ctx, closeURL, noInputJob, &response); err != nil {
-			return nil, errors.WithMessage(err, "failed to close open job after sucessfully uploading inputs")
+		if _, err := c.baseClient.requestor.Post(ctx, closeURL, nil, nil); err != nil {
+			return nil, errors.WithMessage(err, "failed to close open job after successfully uploading inputs")
 		}
 	}
 
@@ -263,6 +263,62 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 		Response:   response,
 		JobActions: jobActions,
 	}, nil
+}
+
+func (c *standardJobsClient) getMaxChunkSize(ctx context.Context, defaultChunkSize int) (int64, error) {
+	features, err := c.GetJobFeatures(ctx)
+	if err != nil {
+		return 0, err
+	}
+	maxChunkSize, err := units.FromHumanSize(features.Features.InputChunkMaximumSize)
+	if err != nil {
+		return 0, errors.WithMessage(err, "failed to parse InputChunkMaximumSize as an integer")
+	}
+	if maxChunkSize == 0 {
+		maxChunkSize = 1024 * 1024
+	}
+	chunkSize := int64(defaultChunkSize)
+	if chunkSize == 0 || chunkSize > maxChunkSize {
+		chunkSize = maxChunkSize
+	}
+	return chunkSize, nil
+}
+
+func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID string, chunkSize int64, inputs map[string]FileInputItem) error {
+	// go through each input and submit the data in chunks as necessary
+	for k, v := range inputs {
+		for innerK, innerV := range v {
+			dataReader, err := innerV()
+			if err != nil {
+				return errors.WithMessagef(err, "failed to get data reader for item %s/%s", k, innerK)
+			}
+
+			// post as many chunks as necessary
+			buf, err := ioutil.ReadAll(dataReader)
+			if err != nil {
+				return errors.WithMessage(err, "failed reading a chunk of data")
+			}
+			start := 0
+			end := 0
+			for {
+				end = start + int(chunkSize)
+				if end > len(buf) {
+					end = len(buf)
+				}
+				if start == end {
+					break
+				}
+				chunk := buf[start:end]
+				chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
+				chunkReader := bytes.NewReader(chunk)
+				if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
+					return errors.WithMessage(err, "failed to post a chunk of data")
+				}
+				start = end
+			}
+		}
+	}
+	return nil
 }
 
 func (c *standardJobsClient) SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error) {
@@ -325,7 +381,7 @@ func (c *standardJobsClient) SubmitJobJDBC(ctx context.Context, input *SubmitJob
 			URL:      input.JDBCConnectionURL,
 			Username: input.DatabaseUsername,
 			Password: input.DatabasePassword,
-			Driver:   input.JDBCDriver,
+			Driver:   "org.postgresql.Driver",
 			Query:    input.Query,
 		},
 	}
@@ -342,62 +398,6 @@ func (c *standardJobsClient) SubmitJobJDBC(ctx context.Context, input *SubmitJob
 		Response:   response,
 		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
 	}, nil
-}
-
-func (c *standardJobsClient) getMaxChunkSize(ctx context.Context, defaultChunkSize int) (int64, error) {
-	features, err := c.GetJobFeatures(ctx)
-	if err != nil {
-		return 0, err
-	}
-	maxChunkSize, err := units.FromHumanSize(features.Features.InputChunkMaximumSize)
-	if err != nil {
-		return 0, errors.WithMessage(err, "failed to parse InputChunkMaximumSize as an integer")
-	}
-	if maxChunkSize == 0 {
-		maxChunkSize = 1024 * 1024
-	}
-	chunkSize := int64(defaultChunkSize)
-	if chunkSize == 0 || chunkSize > maxChunkSize {
-		chunkSize = maxChunkSize
-	}
-	return chunkSize, nil
-}
-
-func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID string, chunkSize int64, inputs map[string]FileInputItem) error {
-	// go through each input and submit the data in chunks as necessary
-	for k, v := range inputs {
-		for innerK, innerV := range v {
-			dataReader, err := innerV()
-			if err != nil {
-				return errors.WithMessagef(err, "failed to get data reader for item %s/%s", k, innerK)
-			}
-
-			// post as many chunks as necessary
-			buf, err := ioutil.ReadAll(dataReader)
-			if err != nil {
-				return errors.WithMessage(err, "failed reading a chunk of data")
-			}
-			start := 0
-			end := 0
-			for {
-				end = start + int(chunkSize)
-				if end > len(buf) {
-					end = len(buf)
-				}
-				if start == end {
-					break
-				}
-				chunk := buf[start:end]
-				chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
-				chunkReader := bytes.NewReader(chunk)
-				if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
-					return errors.WithMessage(err, "failed post a chunk of data")
-				}
-				start = end
-			}
-		}
-	}
-	return nil
 }
 
 // WaitForJobCompletion will wait until the provided job is done processing.

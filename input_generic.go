@@ -3,7 +3,6 @@ package modzy
 import (
 	"bytes"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -39,7 +38,7 @@ func JobInputText(text string) JobInputable {
 
 func JobInputTextFile(filename string) JobInputable {
 	return func() (*jobInputableData, error) {
-		file, err := os.Open(filename)
+		file, err := AppFs.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
@@ -62,7 +61,7 @@ func JobInputURIEncodedString(uriEncoded string) JobInputable {
 
 func JobInputURIEncodedFile(filename string) JobInputable {
 	return func() (*jobInputableData, error) {
-		file, err := os.Open(filename)
+		file, err := AppFs.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
@@ -85,7 +84,7 @@ func JobInputBytes(data []byte) JobInputable {
 
 func JobInputFile(filename string) JobInputable {
 	return func() (*jobInputableData, error) {
-		file, err := os.Open(filename)
+		file, err := AppFs.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
