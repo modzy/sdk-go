@@ -20,8 +20,8 @@ type JobsClient interface {
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
-	// SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
-	// SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
+	SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
+	SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
 	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
@@ -250,12 +250,12 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 	if chunkErr != nil {
 		// uploading the inputs failed, close the job
 		_, _ = jobActions.Cancel(ctx)
-		return nil, errors.WithMessage(err, "job canceled due to failure to upload data")
+		return nil, errors.WithMessage(chunkErr, "job canceled due to failure to upload data")
 	} else {
 		// close the job since everything is posted
 		closeURL := fmt.Sprintf("/api/jobs/%s/close", response.JobIdentifier)
-		if _, err := c.baseClient.requestor.Post(ctx, closeURL, noInputJob, &response); err != nil {
-			return nil, errors.WithMessage(err, "failed to close open job after sucessfully uploading inputs")
+		if _, err := c.baseClient.requestor.Post(ctx, closeURL, nil, nil); err != nil {
+			return nil, errors.WithMessage(err, "failed to close open job after successfully uploading inputs")
 		}
 	}
 
@@ -312,13 +312,92 @@ func (c *standardJobsClient) postInputsAsChunks(ctx context.Context, jobID strin
 				chunkURL := fmt.Sprintf("/api/jobs/%s/%s/%s", jobID, k, innerK)
 				chunkReader := bytes.NewReader(chunk)
 				if _, err := c.baseClient.requestor.PostMultipart(ctx, chunkURL, map[string]io.Reader{"input": chunkReader}, nil); err != nil {
-					return errors.WithMessage(err, "failed post a chunk of data")
+					return errors.WithMessage(err, "failed to post a chunk of data")
 				}
 				start = end
 			}
 		}
 	}
 	return nil
+}
+
+func (c *standardJobsClient) SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error) {
+	toPostSources := map[string]model.S3InputItem{}
+	for k, v := range input.Inputs {
+		input := map[string]model.S3InputItemKey{}
+		for innerK, innerV := range v {
+			s3Location, err := innerV()
+			if err != nil {
+				return nil, errors.WithMessagef(err, "Failed to get s3 key definition for item %s/%s", k, innerK)
+			}
+			input[innerK] = model.S3InputItemKey{
+				Bucket: s3Location.Bucket,
+				Key:    s3Location.Key,
+			}
+		}
+		toPostSources[k] = input
+	}
+
+	toPost := model.SubmitS3Job{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+		Input: model.S3Input{
+			Type:            "aws-s3",
+			AccessKeyID:     input.AWSAccessKeyID,
+			SecretAccessKey: input.AWSSecretAccessKey,
+			Region:          input.AWSRegion,
+			Sources:         toPostSources,
+		},
+	}
+
+	var response model.SubmitJobResponse
+
+	url := "/api/jobs"
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SubmitJobEmbeddedOutput{
+		Response:   response,
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
+	}, nil
+}
+
+func (c *standardJobsClient) SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error) {
+	toPost := model.SubmitJDBCJob{
+		Model: model.SubmitJobModelInfo{
+			Identifier: input.ModelIdentifier,
+			Version:    input.ModelVersion,
+		},
+		Explain: input.Explain,
+		Timeout: int(input.Timeout / time.Millisecond),
+		Input: model.JDBCInput{
+			Type:     "jdbc",
+			URL:      input.JDBCConnectionURL,
+			Username: input.DatabaseUsername,
+			Password: input.DatabasePassword,
+			Driver:   "org.postgresql.Driver",
+			Query:    input.Query,
+		},
+	}
+
+	var response model.SubmitJobResponse
+
+	url := "/api/jobs"
+	_, err := c.baseClient.requestor.Post(ctx, url, toPost, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SubmitJobEmbeddedOutput{
+		Response:   response,
+		JobActions: NewJobActions(c.baseClient, response.JobIdentifier),
+	}, nil
 }
 
 // WaitForJobCompletion will wait until the provided job is done processing.

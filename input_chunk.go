@@ -2,7 +2,6 @@ package modzy
 
 import (
 	"io"
-	"os"
 
 	"github.com/pkg/errors"
 )
@@ -17,7 +16,7 @@ func ChunkReader(data io.Reader) ChunkEncodable {
 
 func ChunkFile(filename string) ChunkEncodable {
 	return func() (io.Reader, error) {
-		file, err := os.Open(filename)
+		file, err := AppFs.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}

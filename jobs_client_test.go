@@ -2,6 +2,8 @@ package modzy
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -141,6 +143,54 @@ func TestSubmitJobEmbeddedHTTPError(t *testing.T) {
 	}
 }
 
+func TestSubmitJobEmbeddedNoDataReaderError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobEmbedded(context.TODO(), &SubmitJobEmbeddedInput{
+		Inputs: map[string]EmbeddedInputItem{
+			"input-1": {
+				"input-1.1": func() (io.Reader, error) {
+					return nil, fmt.Errorf("nope")
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+type badReader struct{}
+
+func (r *badReader) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("nope")
+}
+
+func TestSubmitJobEmbeddedFailedDataReaderError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobEmbedded(context.TODO(), &SubmitJobEmbeddedInput{
+		Inputs: map[string]EmbeddedInputItem{
+			"input-1": {
+				"input-1.1": func() (io.Reader, error) {
+					return &badReader{}, nil
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
 func TestSubmitJobEmbedded(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -152,6 +202,7 @@ func TestSubmitJobEmbedded(t *testing.T) {
 		w.Write([]byte(`{"accountIdentifier": "jsonAccountID"}`))
 	}))
 	defer serv.Close()
+
 	client := NewClient(serv.URL)
 	out, err := client.Jobs().SubmitJobEmbedded(context.TODO(), &SubmitJobEmbeddedInput{
 		ModelIdentifier: "modelID",
@@ -167,6 +218,365 @@ func TestSubmitJobEmbedded(t *testing.T) {
 				"input-2.1": URIEncodeString("input-2.1-value", ""),
 			},
 		},
+	})
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Response.AccountIdentifier != "jsonAccountID" {
+		t.Errorf("response not parsed")
+	}
+}
+
+func TestSubmitJobFileMaxChunkError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestSubmitJobFilePostError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.WriteHeader(500)
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to post open job") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestSubmitJobFileNoReaderFailure(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.Write([]byte(`{"jobIdentifier":"openJobID"}`))
+		case "/api/jobs/openJobID/input-1/input-1.1":
+			w.WriteHeader(500)
+		case "/api/jobs/openJobID":
+			// the job being closed
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
+		Inputs: map[string]FileInputItem{
+			"input-1": {
+				"input-1.1": func() (io.Reader, error) {
+					return nil, fmt.Errorf("nope")
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to get data reader for item") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestSubmitJobFileBadReaderFailure(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.Write([]byte(`{"jobIdentifier":"openJobID"}`))
+		case "/api/jobs/openJobID/input-1/input-1.1":
+			w.WriteHeader(500)
+		case "/api/jobs/openJobID":
+			// the job being closed
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
+		Inputs: map[string]FileInputItem{
+			"input-1": {
+				"input-1.1": func() (io.Reader, error) {
+					return &badReader{}, nil
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed reading a chunk of data") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestSubmitJobFileChunkPostFailure(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.Write([]byte(`{"jobIdentifier":"openJobID"}`))
+		case "/api/jobs/openJobID/input-1/input-1.1":
+			w.WriteHeader(500)
+		case "/api/jobs/openJobID":
+			// the job being closed
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
+		Inputs: map[string]FileInputItem{
+			"input-1": {
+				"input-1.1": ChunkReader(strings.NewReader("abc")),
+			},
+		},
+	})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to post a chunk of data") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestSubmitJobFileCloseAfterChunkPostChunkPostFailure(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.Write([]byte(`{"jobIdentifier":"openJobID"}`))
+		case "/api/jobs/openJobID/input-1/input-1.1":
+			// post was fine
+		case "/api/jobs/openJobID/close":
+			w.WriteHeader(500)
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
+		Inputs: map[string]FileInputItem{
+			"input-1": {
+				"input-1.1": ChunkReader(strings.NewReader("abc")),
+			},
+		},
+	})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to close open job after successfully") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestSubmitJobFile(t *testing.T) {
+	chunks := 0
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"1M"}`))
+		case "/api/jobs":
+			w.Write([]byte(`{"jobIdentifier":"openJobID"}`))
+		case "/api/jobs/openJobID/input-1/input-1.1":
+			chunks++
+			// post a chunk is good
+		case "/api/jobs/openJobID/close":
+			// final close is fine
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	out, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
+		ChunkSize: 1,
+		Inputs: map[string]FileInputItem{
+			"input-1": {
+				"input-1.1": ChunkReader(strings.NewReader("abc")),
+			},
+		},
+	})
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Response.JobIdentifier != "openJobID" {
+		t.Errorf("response not parsed")
+	}
+	if chunks != 3 {
+		t.Errorf("Expected 3 chunks, got %d", chunks)
+	}
+}
+
+func TestBadChunkSizeError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"junk"}`))
+		default:
+			t.Fatalf("An unexpected url was requested: %s", r.URL.String())
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to parse InputChunk") {
+		t.Errorf("Error was different than expected: %v", err)
+	}
+}
+
+func TestDefaultChunkCoverage(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/jobs/features":
+			w.Write([]byte(`{"inputChunkMaximumSize":"0"}`))
+		}
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{})
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+	// this is purely coverage -- not testing that the resulting chunk is actually 1MB
+}
+
+func TestSubmitJobS3HTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobS3(context.TODO(), &SubmitJobS3Input{})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestSubmitJobS3NoKeyDefinitionReaderError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobS3(context.TODO(), &SubmitJobS3Input{
+		Inputs: map[string]S3InputItem{
+			"input-1": {
+				"input-1.1": func() (*S3KeyDefinition, error) {
+					return nil, fmt.Errorf("nope")
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestSubmitJobS3(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("expected method to be POST, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/jobs" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`{"accountIdentifier": "jsonAccountID"}`))
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	out, err := client.Jobs().SubmitJobS3(context.TODO(), &SubmitJobS3Input{
+		ModelIdentifier: "modelID",
+		ModelVersion:    "modelVersion",
+		Explain:         true,
+		Timeout:         time.Second * 9,
+		Inputs: map[string]S3InputItem{
+			"input-1": {
+				"input-1.1": S3Key("bucket", "key"),
+			},
+		},
+	})
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Response.AccountIdentifier != "jsonAccountID" {
+		t.Errorf("response not parsed")
+	}
+}
+
+func TestSubmitJobJDBCHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().SubmitJobJDBC(context.TODO(), &SubmitJobJDBCInput{})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestSubmitJobJDBC(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("expected method to be POST, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/jobs" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`{"accountIdentifier": "jsonAccountID"}`))
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	out, err := client.Jobs().SubmitJobJDBC(context.TODO(), &SubmitJobJDBCInput{
+		ModelIdentifier:   "modelID",
+		ModelVersion:      "modelVersion",
+		Explain:           true,
+		Timeout:           time.Second * 9,
+		JDBCConnectionURL: "jdbcURL",
+		DatabaseUsername:  "username",
+		DatabasePassword:  "password",
+		Query:             "query",
 	})
 	if err != nil {
 		t.Errorf("err not nil: %v", err)
@@ -232,6 +642,20 @@ func TestWaitForJobCompletionHTTPError(t *testing.T) {
 	_, err := client.Jobs().WaitForJobCompletion(context.TODO(), &WaitForJobCompletionInput{}, time.Millisecond)
 	if err == nil {
 		t.Errorf("Expected error")
+	}
+}
+
+func TestWaitForJobCompletionJobIsOpenError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"status": "OPEN"}`))
+	}))
+	client := NewClient(serv.URL)
+	_, err := client.Jobs().WaitForJobCompletion(context.TODO(), &WaitForJobCompletionInput{}, time.Millisecond)
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+	if !strings.Contains(err.Error(), "Job is currently OPEN") {
+		t.Errorf("Error was different than expected: %v", err)
 	}
 }
 

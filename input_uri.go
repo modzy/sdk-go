@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -26,7 +25,7 @@ func URIEncodedString(alreadyEncoded string) URIEncodable {
 
 func URIEncodedFile(alreadyEncodedFilename string) URIEncodable {
 	return func() (io.Reader, error) {
-		file, err := os.Open(alreadyEncodedFilename)
+		file, err := AppFs.Open(alreadyEncodedFilename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", alreadyEncodedFilename)
 		}
@@ -57,7 +56,7 @@ func URIEncodeFile(filename string, mimeType string) URIEncodable {
 		if mimeType == "" {
 			mimeType = detectMimeType(filename)
 		}
-		file, err := os.Open(filename)
+		file, err := AppFs.Open(filename)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "Failed to open file: %s", filename)
 		}
