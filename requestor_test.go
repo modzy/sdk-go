@@ -52,7 +52,7 @@ func TestList(t *testing.T) {
 		if r.Method != "GET" {
 			t.Errorf("method not GET: %s", r.Method)
 		}
-		if r.RequestURI != "/the/list?direction=DESC&fand=fand-1%3Bfand-2&for=for-1%2Cfor-2&page=4&per-page=3&sort-by=s1%2Cs2" {
+		if r.RequestURI != "/the/list?andfield=a1%3Ba2&direction=DESC&orfield=f1%2Cf2&page=4&per-page=3&sort-by=s1%2Cs2" {
 			t.Errorf("get url not expected: %s", r.RequestURI)
 		}
 		w.Header().Set("Link", `<https://example>; rel="next"`)
@@ -66,8 +66,8 @@ func TestList(t *testing.T) {
 	}
 
 	paging := NewPaging(3, 4).
-		WithFilter(And("fand", "fand-1", "fand-2")).
-		WithFilter(Or("for", "for-1", "for-2")).
+		WithFilterAnd("andfield", "a1", "a2").
+		WithFilterOr("orfield", "f1", "f2").
 		WithSort(SortDirectionDescending, "s1", "s2")
 
 	var into string

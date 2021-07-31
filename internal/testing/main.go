@@ -162,7 +162,7 @@ func submitExampleChunked(client modzy.Client, cancel bool) {
 		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
 		Inputs: map[string]modzy.FileInputItem{
 			"image-1": {
-				"image": modzy.ChunkFile("success_kid.png"),
+				"image": modzy.FileInputFile("success_kid.png"),
 			},
 		},
 	})
@@ -186,7 +186,7 @@ func submitExampleS3(client modzy.Client, cancel bool) {
 		AWSRegion:          os.Getenv("MODZY_AWS_REGION"),
 		Inputs: map[string]modzy.S3InputItem{
 			"image-1": {
-				"image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
+				"image": modzy.S3Input("yorktownmatt-modzy", "/success_kid.jpg"),
 			},
 		},
 	})
@@ -228,9 +228,6 @@ func submitExample(client modzy.Client, cancel bool) {
 		Inputs: map[string]modzy.SubmitJobInputItem{
 			"image-1": {
 				"image": modzy.JobInputFile("success_kid.png"),
-			},
-			"image-2": {
-				// "image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
 			},
 		},
 	})

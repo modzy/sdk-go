@@ -14,17 +14,30 @@ import (
 )
 
 type JobsClient interface {
+	// GetJobDetails will get the deatils of a job
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
+	// ListJobsHistory will list job history.  This supports paging, filtering and sorting.
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
+	// SubmitJob will submit a new job based on the inputs provided.  It will select between text, embedded or file.
+	// This does not allow mixing between the different types.  See `JobInputable` for more details.
 	SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error)
+	// SubmitJobText will submit a new job of type "text"
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
+	// SubmitJobEmbedded will submit a new job of type "embedded" which is URI-encoded byte data
 	SubmitJobEmbedded(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
+	// SubmitJobFile will submit a new job and post the provided byte data as multiple chunks of data based on your account's maximum chunk size.
 	SubmitJobFile(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
+	// SubmitJobS3 submits a job that reads inputs from an S3 bucket
 	SubmitJobS3(ctx context.Context, input *SubmitJobS3Input) (*SubmitJobS3Output, error)
+	// SubmitJobJDBC submits a job that reads inputs from a Postgres database through a provided query
 	SubmitJobJDBC(ctx context.Context, input *SubmitJobJDBCInput) (*SubmitJobJDBCOutput, error)
+	// WaitForJobCompletion will block until a job has finished processing.
 	WaitForJobCompletion(ctx context.Context, input *WaitForJobCompletionInput, pollInterval time.Duration) (*GetJobDetailsOutput, error)
+	// CancelJob will cancel a job
 	CancelJob(ctx context.Context, input *CancelJobInput) (*CancelJobOutput, error)
+	// GetJobResults will get the results for a job
 	GetJobResults(ctx context.Context, input *GetJobResultsInput) (*GetJobResultsOutput, error)
+	// GetJobFeatures will read settings related to submitting jobs such as chunk size
 	GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error)
 }
 
@@ -104,7 +117,7 @@ func (c *standardJobsClient) SubmitJob(ctx context.Context, input *SubmitJobInpu
 				if _, has := chunkedInputs[k]; !has {
 					chunkedInputs[k] = FileInputItem{}
 				}
-				chunkedInputs[k][innerK] = ChunkReader(jobInputDescription.Data)
+				chunkedInputs[k][innerK] = FileInputReader(jobInputDescription.Data)
 			}
 		}
 	}

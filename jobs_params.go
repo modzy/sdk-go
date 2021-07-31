@@ -22,6 +22,7 @@ type ListJobsHistoryInput struct {
 	Paging PagingInput
 }
 
+// ListJobsHistoryFilterField are known field names that can be used when filtering the jobs history
 type ListJobsHistoryFilterField string
 
 const (
@@ -33,6 +34,7 @@ const (
 	ListJobsHistoryFilterFieldAccessKey ListJobsHistoryFilterField = "accessKey" // I see "prefix" in the docs -- what does that mean?
 )
 
+// ListJobsHistoryFilterField are known field names that can be used when sorting the jobs history
 type ListJobsHistorySortField string
 
 const (
@@ -54,13 +56,18 @@ func (i *ListJobsHistoryInput) WithPaging(perPage int, page int) *ListJobsHistor
 	return i
 }
 
+func (i *ListJobsHistoryInput) WithFilter(field ListJobsHistoryFilterField, value string) *ListJobsHistoryInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), value)
+	return i
+}
+
 func (i *ListJobsHistoryInput) WithFilterAnd(field ListJobsHistoryFilterField, values ...string) *ListJobsHistoryInput {
-	i.Paging = i.Paging.WithFilter(And(string(field), values...))
+	i.Paging = i.Paging.WithFilterAnd(string(field), values...)
 	return i
 }
 
 func (i *ListJobsHistoryInput) WithFilterOr(field ListJobsHistoryFilterField, values ...string) *ListJobsHistoryInput {
-	i.Paging = i.Paging.WithFilter(Or(string(field), values...))
+	i.Paging = i.Paging.WithFilterOr(string(field), values...)
 	return i
 }
 
@@ -121,7 +128,7 @@ type SubmitJobEmbeddedInput struct {
 
 type SubmitJobEmbeddedOutput = SubmitJobOutput
 
-type FileInputItem map[string]ChunkEncodable
+type FileInputItem map[string]FileInputEncodable
 
 type SubmitJobFileInput struct {
 	ModelIdentifier string

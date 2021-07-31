@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// ModelsClientFake is meant to help in mocking the ModelsClient interface easily for unit testing.
 type ModelsClientFake struct {
 	ListModelsFunc                   func(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
 	GetMinimumEnginesFunc            func(ctx context.Context) (*GetMinimumEnginesOutput, error)

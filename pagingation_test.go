@@ -30,8 +30,9 @@ func TestNewPaging(t *testing.T) {
 func TestPagingChain(t *testing.T) {
 	paging := NewPaging(20, 30).
 		WithSort(SortDirectionDescending, "a", "b").
-		WithFilter(Or("for", "o1", "o2")).
-		WithFilter(And("fand", "a1", "a2"))
+		WithFilter("single", "sv1").
+		WithFilterOr("or", "o1", "o2").
+		WithFilterAnd("and", "a1", "a2")
 
 	if paging.Page != 30 {
 		t.Errorf("Page not set")
@@ -57,19 +58,26 @@ func TestPagingChain(t *testing.T) {
 			t.Errorf("SortBy fields not set, got %v", gotPaging.SortBy)
 		}
 
-		if len(gotPaging.Filters) != 2 {
+		if len(gotPaging.Filters) != 3 {
 			t.Errorf("Filters total not correct, got %+v", gotPaging.Filters)
 		}
-		if gotPaging.Filters[0].Field != "for" ||
-			(gotPaging.Filters[0].Type != FilterTypeOr || len(gotPaging.Filters[0].Values) != 2) ||
-			(gotPaging.Filters[0].Values[0] != "o1" || gotPaging.Filters[0].Values[1] != "o2") {
-			t.Errorf("Filters 0 OR not correct, got %+v", gotPaging.Filters[0])
+
+		if gotPaging.Filters[0].Field != "single" ||
+			(gotPaging.Filters[0].Type != FilterTypeAnd || len(gotPaging.Filters[0].Values) != 1) ||
+			(gotPaging.Filters[0].Values[0] != "sv1") {
+			t.Errorf("Filters 0(single) not correct, got %+v", gotPaging.Filters[0])
 		}
 
-		if gotPaging.Filters[1].Field != "fand" ||
-			(gotPaging.Filters[1].Type != FilterTypeAnd || len(gotPaging.Filters[1].Values) != 2) ||
-			(gotPaging.Filters[1].Values[0] != "a1" || gotPaging.Filters[1].Values[1] != "a2") {
-			t.Errorf("Filters 1 AND not correct, got %+v", gotPaging.Filters[1])
+		if gotPaging.Filters[1].Field != "or" ||
+			(gotPaging.Filters[1].Type != FilterTypeOr || len(gotPaging.Filters[1].Values) != 2) ||
+			(gotPaging.Filters[1].Values[0] != "o1" || gotPaging.Filters[1].Values[1] != "o2") {
+			t.Errorf("Filters 1(OR) not correct, got %+v", gotPaging.Filters[1])
+		}
+
+		if gotPaging.Filters[2].Field != "and" ||
+			(gotPaging.Filters[2].Type != FilterTypeAnd || len(gotPaging.Filters[2].Values) != 2) ||
+			(gotPaging.Filters[2].Values[0] != "a1" || gotPaging.Filters[2].Values[1] != "a2") {
+			t.Errorf("Filters 2(AND) not correct, got %+v", gotPaging.Filters[2])
 		}
 	}
 }

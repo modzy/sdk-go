@@ -10,17 +10,29 @@ import (
 )
 
 type ModelsClient interface {
+	// ListModels lists all models.  This supports paging and filtering.
 	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
+	// GetMinimumEngines reads the engine configuration values
 	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
+	// UpdateModelProcessingEngines updates the engine configuration values
 	UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
+	// GetModelDetails reads the details of a model
 	GetModelDetails(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
+	// GetModelDetailsByName reads details of a model that matches the provided name
 	GetModelDetailsByName(ctx context.Context, input *GetModelDetailsByNameInput) (*GetModelDetailsOutput, error)
+	// ListModelVersions lists all versions of a model.  This supports paging and filtering.
 	ListModelVersions(ctx context.Context, input *ListModelVersionsInput) (*ListModelVersionsOutput, error)
+	// GetRelatedModels will return all models that are related to the given model.
 	GetRelatedModels(ctx context.Context, input *GetRelatedModelsInput) (*GetRelatedModelsOutput, error)
+	// GetModelVersionDetails reads the details of a specific version of a model.
 	GetModelVersionDetails(ctx context.Context, input *GetModelVersionDetailsInput) (*GetModelVersionDetailsOutput, error)
+	// GetModelVersionSampleInput gets a simple input for the provided model version.
 	GetModelVersionSampleInput(ctx context.Context, input *GetModelVersionSampleInputInput) (*GetModelVersionSampleInputOutput, error)
+	// GetModelVersionSampleOutput gets a simple output for the provided model version.
 	GetModelVersionSampleOutput(ctx context.Context, input *GetModelVersionSampleOutputInput) (*GetModelVersionSampleOutputOutput, error)
+	// GetTags returns all tags
 	GetTags(ctx context.Context) (*GetTagsOutput, error)
+	// GetTagModels returns models that match the provided tags
 	GetTagModels(ctx context.Context, input *GetTagModelsInput) (*GetTagModelsOutput, error)
 }
 

@@ -39,6 +39,7 @@ type ListModelsInput struct {
 	Paging PagingInput
 }
 
+// ListModelsFilterField are known field names that can be used when filtering the models list
 type ListModelsFilterField string
 
 const (
@@ -59,13 +60,18 @@ func (i *ListModelsInput) WithPaging(perPage int, page int) *ListModelsInput {
 	return i
 }
 
+func (i *ListModelsInput) WithFilter(field ListModelsFilterField, value string) *ListModelsInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), value)
+	return i
+}
+
 func (i *ListModelsInput) WithFilterAnd(field ListModelsFilterField, values ...string) *ListModelsInput {
-	i.Paging = i.Paging.WithFilter(And(string(field), values...))
+	i.Paging = i.Paging.WithFilterAnd(string(field), values...)
 	return i
 }
 
 func (i *ListModelsInput) WithFilterOr(field ListModelsFilterField, values ...string) *ListModelsInput {
-	i.Paging = i.Paging.WithFilter(Or(string(field), values...))
+	i.Paging = i.Paging.WithFilterOr(string(field), values...)
 	return i
 }
 
@@ -96,6 +102,7 @@ type ListModelVersionsInput struct {
 	Paging  PagingInput
 }
 
+// ListModelVersionsFilterField are known field names that can be used when filtering the model versions list
 type ListModelVersionsFilterField string
 
 const (
@@ -114,13 +121,18 @@ func (i *ListModelVersionsInput) WithPaging(perPage int, page int) *ListModelVer
 	return i
 }
 
+func (i *ListModelVersionsInput) WithFilter(field ListModelVersionsFilterField, value string) *ListModelVersionsInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), value)
+	return i
+}
+
 func (i *ListModelVersionsInput) WithFilterAnd(field ListModelVersionsFilterField, values ...string) *ListModelVersionsInput {
-	i.Paging = i.Paging.WithFilter(And(string(field), values...))
+	i.Paging = i.Paging.WithFilterAnd(string(field), values...)
 	return i
 }
 
 func (i *ListModelVersionsInput) WithFilterOr(field ListModelVersionsFilterField, values ...string) *ListModelVersionsInput {
-	i.Paging = i.Paging.WithFilter(Or(string(field), values...))
+	i.Paging = i.Paging.WithFilterOr(string(field), values...)
 	return i
 }
 

@@ -8,6 +8,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+// JobInputable are data inputs that can be provided when using Jobs().SubmitJob(...).  Based on the function you use, it will select the appropratie API call such as SubmitJobFile, SubmitJobText, etc.
+//
+// The available implementations of this function are below.  You cannot mix and match the different types within a single job.
+//	(Job type "text")
+//	JobInputTextReader
+//	JobInputText
+//	JobInputTextFile
+//
+//	(Job type "embedded")
+//	JobInputURIEncodedReader
+//	JobInputURIEncodedString
+//	JobInputURIEncodedFile
+//	JobInputURIEncodedString
+//
+//	(Job type file, potentially posted as multiple chunks)
+//	JobInputByteReader
+//	JobInputBytes
+//	JobInputFile
 type JobInputable func() (*jobInputableData, error)
 
 type jobInputableType string
