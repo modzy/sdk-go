@@ -167,7 +167,7 @@ func TestSubmitJobEmbeddedNoDataReaderError(t *testing.T) {
 type badReader struct{}
 
 func (r *badReader) Read(p []byte) (n int, err error) {
-	return 0, fmt.Errorf("nope")
+	return 0, fmt.Errorf("bad-reader-nope")
 }
 
 func TestSubmitJobEmbeddedFailedDataReaderError(t *testing.T) {
@@ -629,7 +629,7 @@ func TestWaitForJobCompletionCancelContext(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error")
 	}
-	if !strings.Contains(err.Error(), "Wait for job completion was canceled") {
+	if !strings.Contains(err.Error(), "wait for job completion was canceled") {
 		t.Errorf("Error was different than expected: %v", err)
 	}
 }
@@ -654,7 +654,7 @@ func TestWaitForJobCompletionJobIsOpenError(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error")
 	}
-	if !strings.Contains(err.Error(), "Job is currently OPEN") {
+	if !strings.Contains(err.Error(), "job is currently OPEN") {
 		t.Errorf("Error was different than expected: %v", err)
 	}
 }

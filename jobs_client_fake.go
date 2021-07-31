@@ -9,7 +9,6 @@ import (
 type JobsClientFake struct {
 	GetJobDetailsFunc        func(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistoryFunc      func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
-	SubmitJobFunc            func(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error)
 	SubmitJobTextFunc        func(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	SubmitJobEmbeddedFunc    func(ctx context.Context, input *SubmitJobEmbeddedInput) (*SubmitJobEmbeddedOutput, error)
 	SubmitJobFileFunc        func(ctx context.Context, input *SubmitJobFileInput) (*SubmitJobFileOutput, error)
@@ -29,10 +28,6 @@ func (c *JobsClientFake) GetJobDetails(ctx context.Context, input *GetJobDetails
 
 func (c *JobsClientFake) ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error) {
 	return c.ListJobsHistoryFunc(ctx, input)
-}
-
-func (c *JobsClientFake) SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error) {
-	return c.SubmitJobFunc(ctx, input)
 }
 
 func (c *JobsClientFake) SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error) {

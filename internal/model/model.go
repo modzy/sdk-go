@@ -189,5 +189,5 @@ type MinimumEngines struct {
 type ModelWithTags struct {
 	Identifier string     `json:"identifier"`
 	Name       string     `json:"name"`
-	Tags       []ModelTag `json;"tags"`
+	Tags       []ModelTag `json:"tags"`
 }

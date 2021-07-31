@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -140,6 +142,76 @@ func TestDelete(t *testing.T) {
 	}
 	if into != "some-response" {
 		t.Errorf("response not parsed into: %s", into)
+	}
+}
+
+func TestPostMultipart(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("method not POST: %s", r.Method)
+		}
+		if r.RequestURI != "/the/post/path" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		if !strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data; boundary=") {
+			t.Errorf("content-type header not correct: %s", r.Header.Get("Content-Type"))
+		}
+
+		received, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("test read did not work: %v", err)
+		}
+
+		if !strings.Contains(string(received), "f1data") {
+			t.Errorf("received payload does not contain f1 data")
+		}
+		if !strings.Contains(string(received), "f2data") {
+			t.Errorf("received payload does not contain f2 data")
+		}
+
+		w.Write([]byte(`"some-response"`))
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		baseURL:          serv.URL,
+		httpClient:       defaultHTTPClient,
+		requestDebugging: true, // for coverage
+	}
+
+	var into string
+	_, err := requestor.PostMultipart(context.TODO(), "/the/post/path", map[string]io.Reader{
+		"f1": strings.NewReader("f1data"),
+		"f2": strings.NewReader("f2data"),
+	}, &into)
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if into != "some-response" {
+		t.Errorf("response not parsed into: %s", into)
+	}
+}
+
+func TestPostMultipartBadReader(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`"some-response"`))
+	}))
+	defer serv.Close()
+
+	requestor := &requestor{
+		baseURL:    serv.URL,
+		httpClient: defaultHTTPClient,
+	}
+
+	var into string
+	_, err := requestor.PostMultipart(context.TODO(), "/the/post/path", map[string]io.Reader{
+		"f1": &badReader{},
+	}, &into)
+	if err == nil {
+		t.Fatalf("expected an error")
+	}
+	if !strings.Contains(err.Error(), "bad-reader-nope") {
+		t.Errorf("error was not the type expected: %v", err)
 	}
 }
 

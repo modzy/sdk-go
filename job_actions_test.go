@@ -9,8 +9,10 @@ import (
 	"github.com/modzy/go-sdk/internal/model"
 )
 
+type testContextKey string
+
 func TestJobActionsGetDetails(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey(testContextKey("ck")), "v")
 	jobID := "jobid"
 
 	client := &ClientFake{
@@ -35,7 +37,7 @@ func TestJobActionsGetDetails(t *testing.T) {
 }
 
 func TestJobActionsWaitForCompletion(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("ck"), "v")
 	jobID := "jobid"
 
 	client := &ClientFake{
@@ -63,7 +65,7 @@ func TestJobActionsWaitForCompletion(t *testing.T) {
 }
 
 func TestJobActionsCancel(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("ck"), "v")
 	jobID := "jobid"
 
 	client := &ClientFake{
@@ -88,7 +90,7 @@ func TestJobActionsCancel(t *testing.T) {
 }
 
 func TestJobActionsGetResults(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("ck"), "v")
 	jobID := "jobid"
 
 	client := &ClientFake{
@@ -113,7 +115,7 @@ func TestJobActionsGetResults(t *testing.T) {
 }
 
 func TestJobActionsGetModelDetailsError(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("ck"), "v")
 
 	client := &ClientFake{
 		JobsFunc: func() JobsClient {
@@ -131,7 +133,7 @@ func TestJobActionsGetModelDetailsError(t *testing.T) {
 }
 
 func TestJobActionsGetModelDetails(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "ck", "v")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("ck"), "v")
 	jobID := "jobid"
 
 	client := &ClientFake{

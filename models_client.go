@@ -57,7 +57,7 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 
 func (c *standardModelsClient) GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error) {
 	var out model.MinimumEngines
-	url := fmt.Sprintf("/api/models/processing-engines")
+	url := "/api/models/processing-engines"
 	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
@@ -182,6 +182,9 @@ func (c *standardModelsClient) ListModelVersions(ctx context.Context, input *Lis
 
 func (c *standardModelsClient) UpdateModelProcessingEngines(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error) {
 	isAdmin, err := c.baseClient.Accounting().HasEntitlement(ctx, "CAN_PATCH_PROCESSING_MODEL_VERSION")
+	if err != nil {
+		return nil, err
+	}
 	url := fmt.Sprintf("/api/models/%s/versions/%s", input.ModelID, input.Version)
 	if isAdmin {
 		url = url + "/processing"

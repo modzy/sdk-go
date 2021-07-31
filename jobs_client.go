@@ -18,9 +18,6 @@ type JobsClient interface {
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	// ListJobsHistory will list job history.  This supports paging, filtering and sorting.
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
-	// SubmitJob will submit a new job based on the inputs provided.  It will select between text, embedded or file.
-	// This does not allow mixing between the different types.  See `JobInputable` for more details.
-	SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error)
 	// SubmitJobText will submit a new job of type "text"
 	SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error)
 	// SubmitJobEmbedded will submit a new job of type "embedded" which is URI-encoded byte data
@@ -82,77 +79,6 @@ func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJob
 		Jobs:     items,
 		NextPage: nextPage,
 	}, nil
-}
-
-func (c *standardJobsClient) SubmitJob(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error) {
-	textInputs := map[string]TextInputItem{}
-	embeddedInputs := map[string]EmbeddedInputItem{}
-	chunkedInputs := map[string]FileInputItem{}
-
-	for k, v := range input.Inputs {
-		for innerK, innerV := range v {
-			jobInputDescription, err := innerV()
-			if err != nil {
-				return nil, errors.WithMessagef(err, "failed to get data reader for item %s/%s", k, innerK)
-			}
-
-			switch jobInputDescription.Type {
-			case jobInputableTypeString:
-				if _, has := textInputs[k]; !has {
-					textInputs[k] = TextInputItem{}
-				}
-				if fullStringBytes, err := ioutil.ReadAll(jobInputDescription.Data); err != nil {
-					return nil, errors.WithMessagef(err, "failed to get data for item %s/%s", k, innerK)
-				} else {
-					textInputs[k][innerK] = string(fullStringBytes)
-				}
-
-			case jobInputableTypeEmbedded:
-				if _, has := embeddedInputs[k]; !has {
-					embeddedInputs[k] = EmbeddedInputItem{}
-				}
-				embeddedInputs[k][innerK] = URIEncodedReader(jobInputDescription.Data)
-
-			case jobInputableTypeByte:
-				if _, has := chunkedInputs[k]; !has {
-					chunkedInputs[k] = FileInputItem{}
-				}
-				chunkedInputs[k][innerK] = FileInputReader(jobInputDescription.Data)
-			}
-		}
-	}
-
-	if len(textInputs) > 0 {
-		return c.SubmitJobText(ctx, &SubmitJobTextInput{
-			ModelIdentifier: input.ModelIdentifier,
-			ModelVersion:    input.ModelVersion,
-			Explain:         input.Explain,
-			Timeout:         input.Timeout,
-			Inputs:          textInputs,
-		})
-	}
-
-	if len(embeddedInputs) > 0 {
-		return c.SubmitJobEmbedded(ctx, &SubmitJobEmbeddedInput{
-			ModelIdentifier: input.ModelIdentifier,
-			ModelVersion:    input.ModelVersion,
-			Explain:         input.Explain,
-			Timeout:         input.Timeout,
-			Inputs:          embeddedInputs,
-		})
-	}
-
-	if len(chunkedInputs) > 0 {
-		return c.SubmitJobFile(ctx, &SubmitJobFileInput{
-			ModelIdentifier: input.ModelIdentifier,
-			ModelVersion:    input.ModelVersion,
-			Explain:         input.Explain,
-			Timeout:         input.Timeout,
-			Inputs:          chunkedInputs,
-		})
-	}
-
-	return nil, fmt.Errorf("No inputs were provided")
 }
 
 func (c *standardJobsClient) SubmitJobText(ctx context.Context, input *SubmitJobTextInput) (*SubmitJobTextOutput, error) {
@@ -422,7 +348,7 @@ func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *Wa
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("Wait for job completion was canceled due to provided context being canceled")
+			return nil, fmt.Errorf("wait for job completion was canceled due to provided context being canceled")
 		case <-timer.C:
 			job, err := c.GetJobDetails(ctx, &GetJobDetailsInput{input.JobIdentifier})
 			if err != nil {
@@ -436,7 +362,7 @@ func (c *standardJobsClient) WaitForJobCompletion(ctx context.Context, input *Wa
 				return job, nil
 			}
 			if job.Details.Status == JobStatusOpen {
-				return nil, fmt.Errorf("Job is currently OPEN and will never complete")
+				return nil, fmt.Errorf("job is currently OPEN and will never complete")
 			}
 			// not done -- wait and try again
 			timer.Reset(pollInterval)
@@ -475,7 +401,7 @@ func (c *standardJobsClient) GetJobResults(ctx context.Context, input *GetJobRes
 func (c *standardJobsClient) GetJobFeatures(ctx context.Context) (*GetJobFeaturesOutput, error) {
 	var response model.JobFeatures
 
-	url := fmt.Sprintf("/api/jobs/features")
+	url := "/api/jobs/features"
 	_, err := c.baseClient.requestor.Get(ctx, url, &response)
 	if err != nil {
 		return nil, err

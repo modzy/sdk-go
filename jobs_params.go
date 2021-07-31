@@ -86,19 +86,6 @@ type ListJobsHistoryOutput struct {
 	NextPage *ListJobsHistoryInput `json:"nextPage"`
 }
 
-type SubmitJobInputItem map[string]JobInputable
-
-type SubmitJobInput struct {
-	ModelIdentifier string
-	ModelVersion    string
-	Explain         bool
-	Timeout         time.Duration
-	// ChunkSize (in bytes) is optional -- if not provided it will use the configured MaximumChunkSize.
-	// If provided it will be limited to the configured maximum;
-	ChunkSize int
-	Inputs    map[string]SubmitJobInputItem
-}
-
 type SubmitJobOutput struct {
 	Response model.SubmitJobResponse
 	JobActions

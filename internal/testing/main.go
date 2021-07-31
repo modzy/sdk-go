@@ -31,7 +31,6 @@ func main() {
 
 	// listJobsHistory(client)
 	// errorChecking()
-	// submitExample(client, false)
 	// submitExampleText(client, false)
 	// submitExampleEmbedded(client, true)
 	// submitExampleChunked(client, false)
@@ -215,28 +214,6 @@ func submitExampleJDBC(client modzy.Client, cancel bool) {
 		return
 	}
 	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("JDBC job submitted")
-	afterSubmit(client, cancel, submittedJob.JobActions)
-}
-
-func submitExample(client modzy.Client, cancel bool) {
-	logrus.Info("Will submit chunked job")
-	submittedJob, err := client.Jobs().SubmitJob(ctx, &modzy.SubmitJobInput{
-		ModelIdentifier: "e3f73163d3",
-		ModelVersion:    "0.0.1",
-		Timeout:         time.Minute * 5,
-		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
-		Inputs: map[string]modzy.SubmitJobInputItem{
-			"image-1": {
-				"image": modzy.JobInputFile("success_kid.png"),
-			},
-		},
-	})
-	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to submit job")
-		return
-	}
-
-	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
 	afterSubmit(client, cancel, submittedJob.JobActions)
 }
 
