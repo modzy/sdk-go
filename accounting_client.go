@@ -4,11 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/modzy/go-sdk/model"
+	"github.com/modzy/go-sdk/internal/model"
 )
 
 type AccountingClient interface {
+	// GetEntitlements will get all of your entitlements
 	GetEntitlements(ctx context.Context) (*GetEntitlementsOutput, error)
+	// HasEntitlement will return true if you have the provided entitlement is
 	HasEntitlement(ctx context.Context, entitlement string) (bool, error)
 }
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/modzy/go-sdk/model"
+	"github.com/modzy/go-sdk/internal/model"
 )
 
 type ModelsClient interface {

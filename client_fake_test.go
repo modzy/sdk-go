@@ -1,6 +1,8 @@
 package modzy
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestClientFake(t *testing.T) {
 	calls := 0

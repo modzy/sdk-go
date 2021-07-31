@@ -57,7 +57,7 @@ func listJobsHistory(client modzy.Client) {
 	// This will read the list of job histories, and continue paging until complete
 	listJobsHistoryInput := (&modzy.ListJobsHistoryInput{}).
 		WithPaging(2, 1).
-		WithFilterOr(modzy.ListJobsHistoryFilterFieldStatus, modzy.JobStatusTimedOut). // , modzy.JobStatusPending
+		WithFilterOr(modzy.ListJobsHistoryFilterField("test"), modzy.JobStatusTimedOut). // , modzy.JobStatusPending
 		WithSort(modzy.SortDirectionDescending, modzy.ListJobsHistorySortFieldCreatedAt)
 
 	for listJobsHistoryInput != nil {

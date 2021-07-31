@@ -3,7 +3,7 @@ package modzy
 import (
 	"time"
 
-	"github.com/modzy/go-sdk/model"
+	"github.com/modzy/go-sdk/internal/model"
 )
 
 // GetJobDetailsInput -

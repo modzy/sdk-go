@@ -22,6 +22,11 @@ type standardClient struct {
 	requestor        *requestor
 }
 
+// NewClient will create a standard client for the given baseURL.
+// You need to provide your authentication key to the client through one of two methods:
+// 	client.WithAPIKey(apiKey)
+// or
+// 	client.WithTeamKey(teamID, token)
 func NewClient(baseURL string, opts ...ClientOption) Client {
 	var client = &standardClient{
 		requestor: &requestor{

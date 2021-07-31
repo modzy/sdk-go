@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/modzy/go-sdk/model"
+	"github.com/modzy/go-sdk/internal/model"
 )
 
 func TestJobActionsGetDetails(t *testing.T) {
