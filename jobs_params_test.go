@@ -17,6 +17,21 @@ func TestListJobsHistoryInputWithPaging(t *testing.T) {
 	}
 }
 
+func TestListJobsHistoryInputWithFilter(t *testing.T) {
+	i := &ListJobsHistoryInput{}
+	i.WithFilter(ListJobsHistoryFilterFieldAccessKey, "a")
+
+	if i.Paging.Filters[0].Field != "accessKey" {
+		t.Errorf("expected filter field to be accessKey, got %s", i.Paging.Filters[0].Field)
+	}
+	if i.Paging.Filters[0].Type != "AND" {
+		t.Errorf("expected filter type to be AND, got %s", i.Paging.Filters[0].Type)
+	}
+	if strings.Join(i.Paging.Filters[0].Values, ",") != "a" {
+		t.Errorf("expected filter values to be [a], got %+v", i.Paging.Filters[0].Values)
+	}
+}
+
 func TestListJobsHistoryInputWithFilterAnd(t *testing.T) {
 	i := &ListJobsHistoryInput{}
 	i.WithFilterAnd(ListJobsHistoryFilterFieldAccessKey, "a", "b")

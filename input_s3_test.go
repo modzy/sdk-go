@@ -6,9 +6,9 @@ import (
 	modzy "github.com/modzy/go-sdk"
 )
 
-func TestS3Key(t *testing.T) {
+func TestS3Input(t *testing.T) {
 
-	r, err := modzy.S3Key("bucket", "key")()
+	r, err := modzy.S3Input("bucket", "key")()
 
 	if r.Bucket != "bucket" {
 		t.Errorf("did not pass through bucket")

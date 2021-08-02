@@ -167,7 +167,7 @@ func TestSubmitJobEmbeddedNoDataReaderError(t *testing.T) {
 type badReader struct{}
 
 func (r *badReader) Read(p []byte) (n int, err error) {
-	return 0, fmt.Errorf("nope")
+	return 0, fmt.Errorf("bad-reader-nope")
 }
 
 func TestSubmitJobEmbeddedFailedDataReaderError(t *testing.T) {
@@ -354,7 +354,7 @@ func TestSubmitJobFileChunkPostFailure(t *testing.T) {
 	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
 		Inputs: map[string]FileInputItem{
 			"input-1": {
-				"input-1.1": ChunkReader(strings.NewReader("abc")),
+				"input-1.1": FileInputReader(strings.NewReader("abc")),
 			},
 		},
 	})
@@ -387,7 +387,7 @@ func TestSubmitJobFileCloseAfterChunkPostChunkPostFailure(t *testing.T) {
 	_, err := client.Jobs().SubmitJobFile(context.TODO(), &SubmitJobFileInput{
 		Inputs: map[string]FileInputItem{
 			"input-1": {
-				"input-1.1": ChunkReader(strings.NewReader("abc")),
+				"input-1.1": FileInputReader(strings.NewReader("abc")),
 			},
 		},
 	})
@@ -423,7 +423,7 @@ func TestSubmitJobFile(t *testing.T) {
 		ChunkSize: 1,
 		Inputs: map[string]FileInputItem{
 			"input-1": {
-				"input-1.1": ChunkReader(strings.NewReader("abc")),
+				"input-1.1": FileInputReader(strings.NewReader("abc")),
 			},
 		},
 	})
@@ -530,7 +530,7 @@ func TestSubmitJobS3(t *testing.T) {
 		Timeout:         time.Second * 9,
 		Inputs: map[string]S3InputItem{
 			"input-1": {
-				"input-1.1": S3Key("bucket", "key"),
+				"input-1.1": S3Input("bucket", "key"),
 			},
 		},
 	})
@@ -629,7 +629,7 @@ func TestWaitForJobCompletionCancelContext(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error")
 	}
-	if !strings.Contains(err.Error(), "Wait for job completion was canceled") {
+	if !strings.Contains(err.Error(), "wait for job completion was canceled") {
 		t.Errorf("Error was different than expected: %v", err)
 	}
 }
@@ -654,7 +654,7 @@ func TestWaitForJobCompletionJobIsOpenError(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error")
 	}
-	if !strings.Contains(err.Error(), "Job is currently OPEN") {
+	if !strings.Contains(err.Error(), "job is currently OPEN") {
 		t.Errorf("Error was different than expected: %v", err)
 	}
 }

@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/modzy/go-sdk/internal/impossible"
+
 	"github.com/peterhellberg/link"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -66,11 +68,9 @@ func (r *requestor) execute(
 	if r.requestDebugging {
 		// jsonize again if debugging
 		bodyDebug := ""
-		switch v := toPostInput.(type) {
+		switch toPostInput.(type) {
 		case io.Reader:
-			bodyDebug = "reader provided"
-			bodyDebugBytes, _ := io.ReadAll(v)
-			bodyDebug = string(bodyDebugBytes)
+			bodyDebug = "reader provided, will not read"
 		default:
 			debugJson, debugErr := json.Marshal(toPostInput)
 			bodyDebug = fmt.Sprintf("%v => %s", debugErr, string(debugJson))
@@ -188,16 +188,11 @@ func (r *requestor) PostMultipart(ctx context.Context, path string, filesDatas m
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
-	var err error
 	for key, keyReader := range filesDatas {
-		var fw io.Writer
-		if x, ok := keyReader.(io.Closer); ok {
-			defer x.Close()
-		}
 		// the endpoint expects the filename to the be the key, not just a simple part name
-		if fw, err = w.CreateFormFile(key, key); err != nil {
-			return nil, err
-		}
+		fw, err := w.CreateFormFile(key, key)
+		impossible.HandleError(err)
+
 		if _, err = io.Copy(fw, keyReader); err != nil {
 			return nil, err
 		}

@@ -6,13 +6,13 @@ import (
 
 // Known errors
 var (
-	ErrNotImplemented = fmt.Errorf("Method not implemented")
-	ErrBadRequest     = fmt.Errorf("The API doesn’t understand the request. Something is missing")
-	ErrUnauthorized   = fmt.Errorf("The API key is missing or misspelled")
-	ErrForbidden      = fmt.Errorf("The API key doesn’t have the roles required to perform the request")
-	ErrNotFound       = fmt.Errorf("The API understands the request but a parameter is missing or misspelled")
-	ErrInternalServer = fmt.Errorf("Something went wrong on the server’s side")
-	ErrUnknown        = fmt.Errorf("An unknown error was returned")
+	ErrNotImplemented = fmt.Errorf("method not implemented")
+	ErrBadRequest     = fmt.Errorf("the API doesn’t understand the request. Something is missing")
+	ErrUnauthorized   = fmt.Errorf("the API key is missing or misspelled")
+	ErrForbidden      = fmt.Errorf("the API key doesn’t have the roles required to perform the request")
+	ErrNotFound       = fmt.Errorf("the API understands the request but a parameter is missing or misspelled")
+	ErrInternalServer = fmt.Errorf("something went wrong on the server’s side")
+	ErrUnknown        = fmt.Errorf("an unknown error was returned")
 )
 
 // ModzyHTTPError contains additional error information as returned by the http API

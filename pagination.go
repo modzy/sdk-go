@@ -20,7 +20,7 @@ type PagingInput struct {
 	Filters       []Filter
 }
 
-// NewPaging -
+// NewPaging creates a PagingInput which allows you to set the paging, sorting and filtering information for a List request.
 func NewPaging(perPage int, page int) PagingInput {
 	pi := PagingInput{
 		PerPage: perPage,
@@ -38,8 +38,28 @@ func (p PagingInput) Next() PagingInput {
 	return p
 }
 
-func (p PagingInput) WithFilter(filter Filter) PagingInput {
-	p.Filters = append(p.Filters, filter)
+// WithFilter allows adding a filter to the paging information.  Consider using the `And` and `Or` function helpers for situations where you need more complex filtering.
+func (p PagingInput) WithFilter(field string, value string) PagingInput {
+	return p.WithFilterAnd(field, value)
+}
+
+// WithFilterAnd will create a paging filter that will filter for each value provided
+func (p PagingInput) WithFilterAnd(field string, values ...string) PagingInput {
+	p.Filters = append(p.Filters, Filter{
+		Type:   FilterTypeAnd,
+		Field:  field,
+		Values: values,
+	})
+	return p
+}
+
+// WithFilterAnd will create a paging filter that will filter for any value provided
+func (p PagingInput) WithFilterOr(field string, values ...string) PagingInput {
+	p.Filters = append(p.Filters, Filter{
+		Type:   FilterTypeOr,
+		Field:  field,
+		Values: values,
+	})
 	return p
 }
 
@@ -71,20 +91,4 @@ type Filter struct {
 	Type   FilterType
 	Field  string
 	Values []string
-}
-
-func And(field string, values ...string) Filter {
-	return Filter{
-		Type:   FilterTypeAnd,
-		Field:  field,
-		Values: values,
-	}
-}
-
-func Or(field string, values ...string) Filter {
-	return Filter{
-		Type:   FilterTypeOr,
-		Field:  field,
-		Values: values,
-	}
 }

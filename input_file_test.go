@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestChunkReader(t *testing.T) {
+func TestFileInputReader(t *testing.T) {
 	expectedReader := strings.NewReader("a")
-	r, err := modzy.ChunkReader(expectedReader)()
+	r, err := modzy.FileInputReader(expectedReader)()
 	if r != expectedReader {
 		t.Errorf("did not pass through reader")
 	}
@@ -20,11 +20,11 @@ func TestChunkReader(t *testing.T) {
 	}
 }
 
-func TestChunkFile(t *testing.T) {
+func TestFileInputFile(t *testing.T) {
 	modzy.AppFs = afero.NewMemMapFs()
 	_ = afero.WriteFile(modzy.AppFs, "src/a/b", []byte("file b"), 0644)
 
-	r, err := modzy.ChunkFile("src/a/b")()
+	r, err := modzy.FileInputFile("src/a/b")()
 
 	b, _ := ioutil.ReadAll(r)
 	if string(b) != "file b" {
@@ -35,10 +35,10 @@ func TestChunkFile(t *testing.T) {
 	}
 }
 
-func TestChunkFileError(t *testing.T) {
+func TestFileInputFileError(t *testing.T) {
 	modzy.AppFs = afero.NewMemMapFs()
 
-	_, err := modzy.ChunkFile("not/a/file")()
+	_, err := modzy.FileInputFile("not/a/file")()
 	if err == nil {
 		t.Errorf("expected an error")
 	}

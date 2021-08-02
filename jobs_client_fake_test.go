@@ -7,7 +7,7 @@ import (
 )
 
 func TestJobsClientFake(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "a", "b")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("a"), "b")
 
 	calls := 0
 	fake := &JobsClientFake{
@@ -22,16 +22,6 @@ func TestJobsClientFake(t *testing.T) {
 			return nil, nil
 		},
 		ListJobsHistoryFunc: func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error) {
-			calls++
-			if ctx != expectedCtx {
-				t.Errorf("not expected ctx")
-			}
-			if input == nil {
-				t.Errorf("input was not passed through")
-			}
-			return nil, nil
-		},
-		SubmitJobFunc: func(ctx context.Context, input *SubmitJobInput) (*SubmitJobOutput, error) {
 			calls++
 			if ctx != expectedCtx {
 				t.Errorf("not expected ctx")
@@ -135,7 +125,6 @@ func TestJobsClientFake(t *testing.T) {
 
 	fake.GetJobDetails(expectedCtx, &GetJobDetailsInput{})
 	fake.ListJobsHistory(expectedCtx, &ListJobsHistoryInput{})
-	fake.SubmitJob(expectedCtx, &SubmitJobInput{})
 	fake.SubmitJobText(expectedCtx, &SubmitJobTextInput{})
 	fake.SubmitJobEmbedded(expectedCtx, &SubmitJobEmbeddedInput{})
 	fake.SubmitJobFile(expectedCtx, &SubmitJobFileInput{})
@@ -146,7 +135,7 @@ func TestJobsClientFake(t *testing.T) {
 	fake.GetJobResults(expectedCtx, &GetJobResultsInput{})
 	fake.GetJobFeatures(expectedCtx)
 
-	if calls != 12 {
+	if calls != 11 {
 		t.Errorf("Did not call all of the funcs: %d", calls)
 	}
 }

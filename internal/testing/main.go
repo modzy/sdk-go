@@ -31,7 +31,6 @@ func main() {
 
 	// listJobsHistory(client)
 	// errorChecking()
-	// submitExample(client, false)
 	// submitExampleText(client, false)
 	// submitExampleEmbedded(client, true)
 	// submitExampleChunked(client, false)
@@ -57,7 +56,7 @@ func listJobsHistory(client modzy.Client) {
 	// This will read the list of job histories, and continue paging until complete
 	listJobsHistoryInput := (&modzy.ListJobsHistoryInput{}).
 		WithPaging(2, 1).
-		WithFilterOr(modzy.ListJobsHistoryFilterFieldStatus, modzy.JobStatusTimedOut). // , modzy.JobStatusPending
+		WithFilterOr(modzy.ListJobsHistoryFilterField("test"), modzy.JobStatusTimedOut). // , modzy.JobStatusPending
 		WithSort(modzy.SortDirectionDescending, modzy.ListJobsHistorySortFieldCreatedAt)
 
 	for listJobsHistoryInput != nil {
@@ -162,7 +161,7 @@ func submitExampleChunked(client modzy.Client, cancel bool) {
 		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
 		Inputs: map[string]modzy.FileInputItem{
 			"image-1": {
-				"image": modzy.ChunkFile("success_kid.png"),
+				"image": modzy.FileInputFile("success_kid.png"),
 			},
 		},
 	})
@@ -186,7 +185,7 @@ func submitExampleS3(client modzy.Client, cancel bool) {
 		AWSRegion:          os.Getenv("MODZY_AWS_REGION"),
 		Inputs: map[string]modzy.S3InputItem{
 			"image-1": {
-				"image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
+				"image": modzy.S3Input("yorktownmatt-modzy", "/success_kid.jpg"),
 			},
 		},
 	})
@@ -215,31 +214,6 @@ func submitExampleJDBC(client modzy.Client, cancel bool) {
 		return
 	}
 	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("JDBC job submitted")
-	afterSubmit(client, cancel, submittedJob.JobActions)
-}
-
-func submitExample(client modzy.Client, cancel bool) {
-	logrus.Info("Will submit chunked job")
-	submittedJob, err := client.Jobs().SubmitJob(ctx, &modzy.SubmitJobInput{
-		ModelIdentifier: "e3f73163d3",
-		ModelVersion:    "0.0.1",
-		Timeout:         time.Minute * 5,
-		ChunkSize:       100 * 1024, // this file is ~ 196KB; so force this to be two chunks
-		Inputs: map[string]modzy.SubmitJobInputItem{
-			"image-1": {
-				"image": modzy.JobInputFile("success_kid.png"),
-			},
-			"image-2": {
-				// "image": modzy.S3Key("yorktownmatt-modzy", "/success_kid.jpg"),
-			},
-		},
-	})
-	if err != nil {
-		logrus.WithError(err).Fatalf("Failed to submit job")
-		return
-	}
-
-	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("chunked job submitted")
 	afterSubmit(client, cancel, submittedJob.JobActions)
 }
 

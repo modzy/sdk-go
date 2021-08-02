@@ -6,7 +6,7 @@ import (
 )
 
 func TestModelsClientFake(t *testing.T) {
-	expectedCtx := context.WithValue(context.TODO(), "a", "b")
+	expectedCtx := context.WithValue(context.TODO(), testContextKey("a"), "b")
 
 	calls := 0
 	fake := &ModelsClientFake{

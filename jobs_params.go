@@ -3,7 +3,7 @@ package modzy
 import (
 	"time"
 
-	"github.com/modzy/go-sdk/model"
+	"github.com/modzy/go-sdk/internal/model"
 )
 
 // GetJobDetailsInput -
@@ -22,6 +22,7 @@ type ListJobsHistoryInput struct {
 	Paging PagingInput
 }
 
+// ListJobsHistoryFilterField are known field names that can be used when filtering the jobs history
 type ListJobsHistoryFilterField string
 
 const (
@@ -33,6 +34,7 @@ const (
 	ListJobsHistoryFilterFieldAccessKey ListJobsHistoryFilterField = "accessKey" // I see "prefix" in the docs -- what does that mean?
 )
 
+// ListJobsHistoryFilterField are known field names that can be used when sorting the jobs history
 type ListJobsHistorySortField string
 
 const (
@@ -54,13 +56,18 @@ func (i *ListJobsHistoryInput) WithPaging(perPage int, page int) *ListJobsHistor
 	return i
 }
 
+func (i *ListJobsHistoryInput) WithFilter(field ListJobsHistoryFilterField, value string) *ListJobsHistoryInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), value)
+	return i
+}
+
 func (i *ListJobsHistoryInput) WithFilterAnd(field ListJobsHistoryFilterField, values ...string) *ListJobsHistoryInput {
-	i.Paging = i.Paging.WithFilter(And(string(field), values...))
+	i.Paging = i.Paging.WithFilterAnd(string(field), values...)
 	return i
 }
 
 func (i *ListJobsHistoryInput) WithFilterOr(field ListJobsHistoryFilterField, values ...string) *ListJobsHistoryInput {
-	i.Paging = i.Paging.WithFilter(Or(string(field), values...))
+	i.Paging = i.Paging.WithFilterOr(string(field), values...)
 	return i
 }
 
@@ -77,19 +84,6 @@ func (i *ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...L
 type ListJobsHistoryOutput struct {
 	Jobs     []model.JobSummary    `json:"jobs"`
 	NextPage *ListJobsHistoryInput `json:"nextPage"`
-}
-
-type SubmitJobInputItem map[string]JobInputable
-
-type SubmitJobInput struct {
-	ModelIdentifier string
-	ModelVersion    string
-	Explain         bool
-	Timeout         time.Duration
-	// ChunkSize (in bytes) is optional -- if not provided it will use the configured MaximumChunkSize.
-	// If provided it will be limited to the configured maximum;
-	ChunkSize int
-	Inputs    map[string]SubmitJobInputItem
 }
 
 type SubmitJobOutput struct {
@@ -121,7 +115,7 @@ type SubmitJobEmbeddedInput struct {
 
 type SubmitJobEmbeddedOutput = SubmitJobOutput
 
-type FileInputItem map[string]ChunkEncodable
+type FileInputItem map[string]FileInputEncodable
 
 type SubmitJobFileInput struct {
 	ModelIdentifier string

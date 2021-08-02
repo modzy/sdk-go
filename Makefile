@@ -25,6 +25,6 @@ build:
 clean:
 	find . -name \*.coverprofile -delete
 
-.PHONY: example
-example:
-	@cd example && go run main.go
+.PHONY: testing
+testing:
+	@cd internal/testing && go run main.go

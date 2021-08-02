@@ -5,11 +5,17 @@ import (
 	"time"
 )
 
+// JobActions are a collection shortcut methods when dealing with a single job.  This is returned from a SubmitJob function call.
 type JobActions interface {
+	// GetDetails will get the details of the job
 	GetDetails(ctx context.Context) (*GetJobDetailsOutput, error)
+	// GetModelDetails will get the details of the related version of its model
 	GetModelDetails(ctx context.Context) (*GetModelVersionDetailsOutput, error)
+	// WaitForCompletion will block until the job is no longer processing
 	WaitForCompletion(ctx context.Context, pollInterval time.Duration) (*GetJobDetailsOutput, error)
+	// Cancel will cancel the a still-processing job
 	Cancel(ctx context.Context) (*CancelJobOutput, error)
+	// GetResults will get the results of a complete job
 	GetResults(ctx context.Context) (*GetJobResultsOutput, error)
 }
 

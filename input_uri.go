@@ -9,6 +9,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// URIEncodable is a data input that can be provided when using Jobs().SubmitJobEmbedded(...).
+//
+// Provided implementations of this function are:
+//	(already encoded values)
+//	URIEncodedReader
+//	URIEncodedString
+//	URIEncodedFile
+//
+//	(values to be URI encoded)
+//	URIEncodeReader
+//	URIEncodeString
+//	URIEncodeString
+//	URIEncodeFile
 type URIEncodable func() (io.Reader, error)
 
 func URIEncodedReader(alreadyEncoded io.Reader) URIEncodable {

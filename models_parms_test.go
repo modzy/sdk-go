@@ -17,6 +17,21 @@ func TestListModelsInputWithPaging(t *testing.T) {
 	}
 }
 
+func TestListModelsInputWithFilter(t *testing.T) {
+	i := &ListModelsInput{}
+	i.WithFilter(ListModelsFilterFieldAuthor, "a")
+
+	if i.Paging.Filters[0].Field != "author" {
+		t.Errorf("expected filter field to be author, got %s", i.Paging.Filters[0].Field)
+	}
+	if i.Paging.Filters[0].Type != "AND" {
+		t.Errorf("expected filter type to be AND, got %s", i.Paging.Filters[0].Type)
+	}
+	if strings.Join(i.Paging.Filters[0].Values, ",") != "a" {
+		t.Errorf("expected filter values to be [a], got %+v", i.Paging.Filters[0].Values)
+	}
+}
+
 func TestListModelsInputWithFilterAnd(t *testing.T) {
 	i := &ListModelsInput{}
 	i.WithFilterAnd(ListModelsFilterFieldAuthor, "a", "b")
@@ -56,6 +71,21 @@ func TestListModelVersionsInputWithPaging(t *testing.T) {
 	}
 	if i.Paging.Page != 5 {
 		t.Errorf("expected page to be 5, got %d", i.Paging.Page)
+	}
+}
+
+func TestListModelVersionsInputWithFilter(t *testing.T) {
+	i := &ListModelVersionsInput{}
+	i.WithFilter(ListModelVersionsFilterFieldCreatedAt, "a")
+
+	if i.Paging.Filters[0].Field != "createdAt" {
+		t.Errorf("expected filter field to be author, got %s", i.Paging.Filters[0].Field)
+	}
+	if i.Paging.Filters[0].Type != "AND" {
+		t.Errorf("expected filter type to be AND, got %s", i.Paging.Filters[0].Type)
+	}
+	if strings.Join(i.Paging.Filters[0].Values, ",") != "a" {
+		t.Errorf("expected filter values to be [a], got %+v", i.Paging.Filters[0].Values)
 	}
 }
 
