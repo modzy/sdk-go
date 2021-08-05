@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/modzy/go-sdk/internal/impossible"
+	"github.com/modzy/sdk-go/internal/impossible"
 
 	"github.com/peterhellberg/link"
 	"github.com/pkg/errors"

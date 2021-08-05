@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	modzy "github.com/modzy/go-sdk"
+	modzy "github.com/modzy/sdk-go"
 	"github.com/spf13/afero"
 )
 

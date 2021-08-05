@@ -1,4 +1,4 @@
-module github.com/modzy/go-sdk
+module github.com/modzy/sdk-go
 
 go 1.16
 
