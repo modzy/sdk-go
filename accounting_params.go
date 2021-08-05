@@ -1,6 +1,6 @@
 package modzy
 
-import "github.com/modzy/sdk-go/internal/model"
+import "github.com/modzy/sdk-go/model"
 
 // GetEntitlementsOutput -
 type GetEntitlementsOutput struct {

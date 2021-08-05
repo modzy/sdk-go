@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/modzy/sdk-go/internal/model"
+	"github.com/modzy/sdk-go/model"
 )
 
 func TestSortedVersions(t *testing.T) {
