@@ -3,7 +3,7 @@ package modzy_test
 import (
 	"testing"
 
-	modzy "github.com/modzy/go-sdk"
+	modzy "github.com/modzy/sdk-go"
 )
 
 func TestS3Input(t *testing.T) {

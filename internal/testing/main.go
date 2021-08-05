@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	modzy "github.com/modzy/go-sdk"
+	modzy "github.com/modzy/sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

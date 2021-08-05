@@ -1,7 +1,7 @@
 package modzy
 
 import (
-	"github.com/modzy/go-sdk/internal/model"
+	"github.com/modzy/sdk-go/internal/model"
 )
 
 // GetModelVersionDetailsInput -

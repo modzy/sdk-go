@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	modzy "github.com/modzy/go-sdk"
+	modzy "github.com/modzy/sdk-go"
 )
 
 func ExampleNewClient() {
