@@ -9,9 +9,9 @@ type ModelVersion struct {
 }
 
 type ModelVersionSummary struct {
-	ID            string   `json:"modelId"`
-	LatestVersion string   `json:"latestVersion"`
-	Versions      []string `json:"versions"`
+	ID            string         `json:"modelId"`
+	LatestVersion string         `json:"latestVersion"`
+	Versions      SortedVersions `json:"versions"`
 }
 
 type ModelDetailsTimeout struct {
@@ -51,11 +51,11 @@ type ModelRunStatus struct {
 }
 
 type ModelTag struct {
-	Identifier    string          `json:"identifier"`
-	Name          string          `json:"name"`
-	DataType      string          `json:"dataType"`
-	IsCategorical bool            `json:"isCategorical"`
-	Images        json.RawMessage `json:"images"`
+	Identifier    string       `json:"identifier"`
+	Name          string       `json:"name"`
+	DataType      string       `json:"dataType"`
+	IsCategorical bool         `json:"isCategorical"`
+	Images        []ModelImage `json:"images"`
 }
 
 type ModelImage struct {
@@ -70,15 +70,21 @@ type ModelVisibility struct {
 	Teams []string `json:"teams"`
 }
 
+type ModelFeature struct {
+	Identifier  string `json:"identifier"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type ModelMetdata struct {
 	ModelID            string          `json:"modelId"`
 	LatestVersion      string          `json:"latestVersion"`
-	Versions           []string        `json:"versions"`
+	Versions           SortedVersions  `json:"versions"`
 	Author             string          `json:"author"`
 	Name               string          `json:"name"`
 	Description        string          `json:"description"`
 	Permalink          string          `json:"permalink"`
-	Features           json.RawMessage `json:"features"`
+	Features           []ModelFeature  `json:"features"`
 	IsActive           bool            `json:"isActive"`
 	IsRecommended      bool            `json:"isRecommended"`
 	IsCommercial       bool            `json:"isCommercial"`
@@ -151,35 +157,35 @@ type ModelDetails struct {
 	ModelID             string          `json:"modelID"`
 	LatestVersion       string          `json:"latestVersion"`
 	LatestActiveVersion string          `json:"latestActiveVersion"`
-	Versions            []string        `json:"versions"`
+	Versions            SortedVersions  `json:"versions"`
 	Author              string          `json:"author"`
 	Name                string          `json:"name"`
 	Description         string          `json:"description"`
 	Permalink           string          `json:"permalink"`
-	Features            json.RawMessage `json:"features"`
+	Features            []ModelFeature  `json:"features"`
 	IsActive            bool            `json:"isActive"`
 	IsRecommended       bool            `json:"isRecommended"`
 	IsCommercial        bool            `json:"isCommercial"`
 	Tags                []ModelTag      `json:"tags"`
 	Images              []ModelImage    `json:"images"`
-	SnapshotImages      json.RawMessage `json:"snapshotImages"`
+	SnapshotImages      []ModelImage    `json:"snapshotImages"`
 	LastActiveDateTime  ModzyTime       `json:"lastActiveDateTime"`
 	Visibility          ModelVisibility `json:"visibility"`
 }
 
 type RelatedModel struct {
-	ModelID       string          `json:"identifier"`
-	LatestVersion string          `json:"latestVersion"`
-	Versions      []string        `json:"versions"`
-	Author        string          `json:"author"`
-	Name          string          `json:"name"`
-	Description   string          `json:"description"`
-	Permalink     string          `json:"permalink"`
-	Features      json.RawMessage `json:"features"`
-	IsActive      bool            `json:"isActive"`
-	IsRecommended bool            `json:"isRecommended"`
-	Tags          []ModelTag      `json:"tags"`
-	Images        []ModelImage    `json:"images"`
+	ModelID       string         `json:"identifier"`
+	LatestVersion string         `json:"latestVersion"`
+	Versions      SortedVersions `json:"versions"`
+	Author        string         `json:"author"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	Permalink     string         `json:"permalink"`
+	Features      []ModelFeature `json:"features"`
+	IsActive      bool           `json:"isActive"`
+	IsRecommended bool           `json:"isRecommended"`
+	Tags          []ModelTag     `json:"tags"`
+	Images        []ModelImage   `json:"images"`
 }
 
 type MinimumEngines struct {

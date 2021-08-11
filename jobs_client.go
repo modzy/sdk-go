@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/docker/go-units"
-	"github.com/modzy/sdk-go/internal/model"
+	"github.com/modzy/sdk-go/model"
 	"github.com/pkg/errors"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/modzy/sdk-go/internal/model"
+	"github.com/modzy/sdk-go/model"
 )
 
 type AccountingClient interface {
