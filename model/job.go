@@ -52,12 +52,6 @@ type SubmitJobResponse struct {
 	ImageClassificationModel bool                    `json:"imageClassificationModel"`
 }
 
-type JobSummary struct {
-	JobIdentifier string               `json:"jobIdentifier"`
-	Status        string               `json:"status"`
-	Model         ModelNamedIdentifier `json:"model"`
-}
-
 type JobDetails struct {
 	JobIdentifier            string               `json:"jobIdentifier"`
 	SubmittedBy              string               `json:"submittedBy"`

@@ -82,7 +82,7 @@ func (i *ListJobsHistoryInput) WithSort(sortDirection SortDirection, sortBy ...L
 }
 
 type ListJobsHistoryOutput struct {
-	Jobs     []model.JobSummary    `json:"jobs"`
+	Jobs     []model.JobDetails    `json:"jobs"`
 	NextPage *ListJobsHistoryInput `json:"nextPage"`
 }
 
