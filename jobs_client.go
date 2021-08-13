@@ -60,7 +60,7 @@ func (c *standardJobsClient) GetJobDetails(ctx context.Context, input *GetJobDet
 func (c *standardJobsClient) ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error) {
 	input.Paging = input.Paging.withDefaults()
 
-	var items []model.JobSummary
+	var items []model.JobDetails
 	url := "/api/jobs/history"
 	_, links, err := c.baseClient.requestor.List(ctx, url, input.Paging, &items)
 	if err != nil {

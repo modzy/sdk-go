@@ -42,6 +42,9 @@ func (mt ModzyTime) MarshalJSON() ([]byte, error) {
 	if mt.IsZero() {
 		return []byte("null"), nil
 	}
-	formatted := mt.Time.Format(DateFormat)
-	return []byte(fmt.Sprintf(`"%s"`, formatted)), nil
+	return []byte(fmt.Sprintf(`"%s"`, mt)), nil
+}
+
+func (mt ModzyTime) String() string {
+	return mt.Time.Format(DateFormat)
 }
