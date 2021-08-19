@@ -1,9 +1,11 @@
 package main
 
 import (
+    "bytes"
     "context"
     "github.com/joho/godotenv"
     modzy "github.com/modzy/sdk-go"
+    "io/ioutil"
     "log"
     "os"
     "time"
@@ -35,9 +37,9 @@ func main() {
     // Get the model object:
     // If you already know the model identifier (i.e.: you got it from the URL of the model details page or from the input sample),
     // you can skip this step. If you don't, you can find the model identifier by using its name as follows:
-    //model, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{Name: "Sentiment Analysis"})
+    model, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{Name: "Multi-Language OCR"})
     // Or if you already know the model id and want to know more about the model, you can use this instead:
-    model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "ed542963de"})
+    // model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "c60c8dbd79"})
     // You can find more information about how to query the models on the model_sample.go file.
     // The model identifier is under the ModelID key. You can take a look at the other properties under ModelDetails struct
     // Or just log the model identifier, and potencially the latest version
@@ -45,8 +47,7 @@ func main() {
     // Get the model version object:
     // If you already know the model version and the input key(s) of the model version you can skip this step. Also, you can
     // use the following code block to know about the inputs keys and skip the call on future job submissions.
-    //modelVersion, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{ModelID: model.Details.ModelID, Version: model.Details.LatestVersion})
-    modelVersion, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{ModelID: model.Details.ModelID, Version: "0.0.27"})
+    modelVersion, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{ModelID: model.Details.ModelID, Version: model.Details.LatestVersion})
     if err != nil {
         log.Fatalf("Unexpected error %s", err)
         return
@@ -54,7 +55,7 @@ func main() {
     // The info stored in modelVersion provides insights about the amount of time that the model can spend processing, the inputs, and
     // output keys of the model.
     log.Printf("The model version is %s\n", modelVersion.Details.Version)
-    log.Printf("  timeouts: status %dms, run %dms\n",modelVersion.Details.Timeout.Status, modelVersion.Details.Timeout.Run)
+    log.Printf("  timeouts: status %dms, run %dms\n", modelVersion.Details.Timeout.Status, modelVersion.Details.Timeout.Run)
     log.Println("  inputs:")
     for _, input := range modelVersion.Details.Inputs {
         log.Printf("    key %s, type %s, description: %s\n", input.Name, input.AcceptedMediaTypes, input.Description)
@@ -66,24 +67,38 @@ func main() {
     // Send the job:
     // With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
     // submit the job. Just prepare the source map:
-    mapSource := make(map[string]modzy.TextInputItem)
-    mapInput := make(modzy.TextInputItem)
-    mapInput["input.txt"] = "Modzy is great!"
+    // A file input can be a byte array or any file path. This input type fits for any size files.
+    imagePath  := "./samples/image.png"
+    configPath := "./samples/config.json"
+    mapSource := make(map[string]modzy.FileInputItem)
+    mapInput := make(modzy.FileInputItem)
+    mapInput["input"] = modzy.FileInputFile(imagePath)
+    mapInput["config.json"] = modzy.FileInputFile(configPath)
     mapSource["source-key"] = mapInput
     // An inference job groups input data that you send to a model. You can send any amount of inputs to
     // process and you can identify and refer to a specific input by the key that you assign, for example we can add:
-    mapInput = make(modzy.TextInputItem)
-    mapInput["input.txt"] = "Sometimes I really hate ribs"
+    mapInput = make(modzy.FileInputItem)
+    mapInput["input"] = modzy.FileInputFile(imagePath)
+    mapInput["config.json"] = modzy.FileInputFile(configPath)
     mapSource["second-key"] = mapInput
-    mapInput = make(modzy.TextInputItem)
-    mapInput["input.txt"] = "Born and raised in Pennsylvania, Swift moved to Nashville, Tennessee, at the age of 14 to pursue a career in country music"
+    // You don't need to load all the inputs from files, you can just convert the files to bytes as follows:
+    imageBytes, err := ioutil.ReadFile(imagePath)
+    configBytes := []byte("{\"languages\":[\"spa\"]}")
+    mapInput = make(modzy.FileInputItem)
+    mapInput["input"] = modzy.FileInputReader(bytes.NewReader(imageBytes))
+    mapInput["config.json"] = modzy.FileInputReader(bytes.NewReader(configBytes))
     mapSource["another-key"] = mapInput
     //If you send a wrong input key, the model fails to process the input.
-    mapInput = make(modzy.TextInputItem)
-    mapInput["a.wrong.key"] = "This input is wrong!"
+    mapInput = make(modzy.FileInputItem)
+    mapInput["a.wrong.key"] = modzy.FileInputFile(imagePath)
+    mapInput["config.json"] = modzy.FileInputFile(configPath)
     mapSource["wrong-key"] = mapInput
-    // When you have all your inputs ready, you can use our helper method to submit the job as follows:
-    job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+    //If you send a correct input key but some wrong values, the model fails too.
+    mapInput = make(modzy.FileInputItem)
+    mapInput["input"] = modzy.FileInputFile(configPath)
+    mapInput["config.json"] = modzy.FileInputFile(imagePath)
+    mapSource["wrong-value"] = mapInput
+    job, err := client.Jobs().SubmitJobFile(ctx, &modzy.SubmitJobFileInput{
         ModelIdentifier: model.Details.ModelID,
         ModelVersion: modelVersion.Details.Version,
         Inputs: mapSource,
