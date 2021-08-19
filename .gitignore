@@ -1,5 +1,6 @@
 *.coverprofile
-.idea/modules.xml
 sdk-go.iml
 vcs.xml
 settings.json
+.idea/
+.env
