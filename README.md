@@ -49,7 +49,7 @@ Find your API key in your user profile. To get your full API key click on "Get k
 Once you have a `model` and `version` identified, get authenticated with your API key.
 
 ```go
-client := modzysdk.NewClient("http://url.to.modzy/api").WithAPIKey("API Key")
+client := modzy.NewClient("http://url.to.modzy/api").WithAPIKey("API Key")
 ```
 
 ## Basic usage
@@ -109,7 +109,7 @@ Additionally, users can set their own input names. When multiple input items are
 [Get a model's details](https://docs.modzy.com/reference/list-model-details):
 
 ```go
-out, err := client.Models().GetModelDetails(ctx, &modzysdk.GetModelDetailsInput{ModelID: "ed542963de"})
+out, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "ed542963de"})
 if err != nil {
     return err
 }
@@ -121,7 +121,7 @@ Model specific sample requests are available in the version details and in the M
 [Get version details](https://docs.modzy.com/reference/get-version-details):
 
 ```go
-out, err := client.Models().GetModelVersionDetails(ctx, &modzysdk.GetModelVersionDetailsInput{ModelID: "ed542963de", Version: "0.0.27"})
+out, err := client.Models().GetModelVersionDetails(ctx, &modzy.GetModelVersionDetailsInput{ModelID: "ed542963de", Version: "0.0.27"})
 if err != nil {
     return err
 }
@@ -138,7 +138,7 @@ fmt.Println("  outputs:")
 for _, input := range out.Details.Inputs {
     fmt.Printf(
         "    key %s, type %s, description: %s\n", output.Name, output.MediaType, output.Description
-    );
+    )
 }
 ```
 
@@ -155,7 +155,7 @@ Modzy supports several *input types* such as `text`, `embedded` for Base64 strin
 ```go
 var inputs map[string]string
 inputs['my-input'] = "Modzy is great!"
-job, err := client.Jobs().SubmitJobText(ctx, &modzysdk.SubmitJobTextInput{ModelIdentifier="ed542963de", ModelVersion="0.0.27", Inputs=inputs})
+job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{ModelIdentifier="ed542963de", ModelVersion="0.0.27", Inputs=inputs})
 ```
 
 [Hold until the inference is complete and results become available](https://docs.modzy.com/reference/get-job-details):
@@ -171,7 +171,7 @@ Results are available per input item and can be identified with the name provide
 Jobs requested for multiple input items may have partial results available prior to job completion.
 
 ```go
-results, err := client.Jobs().GetJobResults(&modzysdk.GetJobResultsInput{JobIdentifier: job.JobIdentifier})
+results, err := client.Jobs().GetJobResults(&modzy.GetJobResultsInput{JobIdentifier: job.JobIdentifier})
 ```
 
 ## Features
@@ -213,7 +213,7 @@ Set the base url and api key in each sample file:
 
 ```go
 // TODO: set the base url of modzy api and you api key
-client := modzysdk.NewClient("http://url.to.modzy/api").WithAPIKey("API Key")
+client := modzy.NewClient("http://url.to.modzy/api").WithAPIKey("API Key")
 ```
 
 Or follow the instructions [here](https://github.com/modzy/sdk-go/tree/main/contributing.adoc#set-environment-variables-in-bash) to learn more.
