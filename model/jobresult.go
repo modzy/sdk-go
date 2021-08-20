@@ -7,18 +7,36 @@ import (
 )
 
 type JobResults struct {
-	JobIdentifier string               `json:"jobIdentifier"`
-	Total         int                  `json:"total"`
-	Completed     int                  `json:"completed"`
-	Failed        int                  `json:"failed"`
-	Finished      bool                 `json:"finished"`
-	SubmittedBy   string               `json:"submittedByKey"`
-	Results       map[string]JobResult `json:"results"`
+	JobIdentifier string    `json:"jobIdentifier"`
+	Total         int       `json:"total"`
+	Completed     int       `json:"completed"`
+	Failed        int       `json:"failed"`
+	Finished      bool      `json:"finished"`
+	SubmittedBy   string    `json:"submittedByKey"`
+	Explained     bool      `json:"explained"`
+	SubmittedAt   ModzyTime `json:"submittedAt"`
+
+	JobQueueTime     int `json:"jobQueueTime"`
+	JobProcessedTime int `json:"jobProcessedTime"`
+	JobElapsedTime   int `json:"jobElapsedTime"`
+
+	// next api version:
+	// InitialQueueTime          int       `json:"initialQueueTime"`
+	// TotalQueueTime            int       `json:"totalQueueTime"`
+	// AverageModelLatency       float64   `json:"averageModelLatency"`
+	// TotalModelLatency         float64   `json:"totalModelLatency"`
+	// ElapsedTime               float64   `json:"elapsedTime"`
+	// StartingResultSummarizing ModzyTime `json:"startingResultSummarizing"`
+	// ResultSummarizing         int       `json:"resultSummarizing"`
+
+	Results  map[string]JobResult `json:"results"`
+	Failures map[string]JobResult `json:"failures"`
 }
 
 type JobResult struct {
 	Status      string                 `json:"status"`
 	Engine      string                 `json:"engine"`
+	Error       string                 `json:"error"`
 	StartTime   ModzyTime              `json:"startTime"`
 	UpdateTime  ModzyTime              `json:"updateTime"`
 	EndTime     ModzyTime              `json:"endTime"`

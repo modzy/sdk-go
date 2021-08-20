@@ -26,15 +26,16 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
+		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
 	}
 
 	// listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
+	submitExampleTextWithFailures(client, false)
 	// submitExampleEmbedded(client, true)
 	// submitExampleChunked(client, false)
-	submitExampleS3(client, false)
+	// submitExampleS3(client, false)
 	// submitExampleJDBC(client, false)
 	// describeJob(client, "86b76e20-c506-485d-af4e-2072c41ca35b")
 	// describeModel(client, "ed542963de")
@@ -113,6 +114,30 @@ func submitExampleText(client modzy.Client, cancel bool) {
 			},
 			"emojis": {
 				"input.txt": ":-) :slightly_smiling_face: :disappointed: %%%%%8*",
+			},
+		},
+	})
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to submit text job")
+		return
+	}
+
+	logrus.WithField("jobIdentifier", submittedJob.Response.JobIdentifier).Info("text job submitted")
+	afterSubmit(client, cancel, submittedJob)
+}
+
+func submitExampleTextWithFailures(client modzy.Client, cancel bool) {
+	logrus.Info("Will submit example text job")
+	submittedJob, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+		ModelIdentifier: "ed542963de",
+		ModelVersion:    "0.0.27",
+		Timeout:         time.Minute * 5,
+		Inputs: map[string]modzy.TextInputItem{
+			"happy-text": {
+				"not-input.txt": "I love AI! :)",
+			},
+			"angry-text": {
+				"input.txt": "I hate AI! abysmal. adverse. alarming. angry. annoy. anxious :(",
 			},
 		},
 	})
@@ -240,6 +265,10 @@ func afterSubmit(client modzy.Client, cancel bool, job modzy.JobActions) {
 			return
 		}
 		logrus.Infof("Job results: %s -> %d results", jobResults.Results.JobIdentifier, jobResults.Results.Total)
+
+		if len(jobResults.Results.Failures) > 0 {
+			logrus.Warnf("Job had failures: %+v", jobResults.Results.Failures)
+		}
 	}
 }
 
