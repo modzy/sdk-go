@@ -115,7 +115,7 @@ func main() {
     // We provide a helper method to listen until the job finishes processing. Its a good practice to set a max timeout
     // if you're doing a test (ie: 2*status+run). Otherwise, if the timeout is set to None, it will listen until the job finishes and moves to
     // COMPLETED, CANCELED, or TIMEOUT.
-    job2, err := client.Jobs().WaitForJobCompletion(ctx, &modzy.WaitForJobCompletionInput{JobIdentifier: job.Response.JobIdentifier}, 20*time.Second)
+    job2, err := job.JobActions.WaitForCompletion(ctx, 20*time.Second)
     if err != nil {
         log.Fatalf("Unexpected error %s", err)
         return
@@ -125,7 +125,9 @@ func main() {
     if job2.Details.Status == "COMPLETED" {
         // A completed job means that all the inputs were processed by the model. Check the results for each
         // input key provided in the source map to see the model output.
-        results, err := client.Jobs().GetJobResults(ctx, &modzy.GetJobResultsInput{JobIdentifier: job.Response.JobIdentifier})
+        results, err := job.JobActions.GetResults(ctx)
+        // You can also get the results with the identifier (if you don't have the job object)
+        //results, err := client.Jobs().GetJobResults(ctx, &modzy.GetJobResultsInput{JobIdentifier: job.Response.JobIdentifier})
         if err != nil {
             log.Fatalf("Unexpected error %s", err)
             return
