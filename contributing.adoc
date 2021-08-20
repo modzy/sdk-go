@@ -20,11 +20,11 @@
 
 
 
-<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/modzy/sdk-java">
+<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/modzy/sdk-go">
 
-<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/modzy/sdk-java">
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/modzy/sdk-go">
 
-<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/modzy/sdk-java">
+<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/modzy/sdk-go">
 
 <br>
 <br>
@@ -37,8 +37,8 @@
 <br>
 
 <div align="center">
-<a href="/README.adoc" style="text-decoration:none">Readme</a> |
-<a href=https://models.modzy.com/docs/home/home style="text-decoration:none">Documentation</a>
+<a href="/README.md" style="text-decoration:none">Readme</a> |
+<a href=https://docs.modzy.com/reference/introduction style="text-decoration:none">Documentation</a>
 
 </div>
 
@@ -56,7 +56,7 @@ Below you'll find our contributing requirements, a step-by-step guideline, and o
 
 == Requirements
 
-- Search previous link:https://github.com/modzy/sdk-java/issues[issues] before making new ones to avoid duplicates.
+- Search previous link:https://github.com/modzy/sdk-go/issues[issues] before making new ones to avoid duplicates.
 - If you are reporting a bug, please include:
   . Your operating system name and version.
   . Any details about your local setup that might be helpful in troubleshooting.
@@ -82,11 +82,7 @@ Below you'll find our contributing requirements, a step-by-step guideline, and o
 
 Clone the repository:
 
-- `$ git clone https://github.com/modzy/sdk-java.git`
-
-Install dependencies:
-
-- `$ mvn compile -DskipTests=true`
+- `$ git clone https://github.com/modzy/sdk-go.git`
 
 Create a branch for your awesome new feature:
 
@@ -134,17 +130,15 @@ MODZY_API_KEY=my_key.modzy
 
 Run tests:
 
-- `$ mvn test`
+- `$ go test -v`
 
 Or specify the test that you want to run:
 
-- `$ mvn -Dtest=TestModelClient test`
+- `$ go test -v -run TestGetModelVersionDetailsHTTPError`
 
 === 4. Document your changes
 
 Add supporting documentation for your code.
-
-//what else would be useful for Raúl?
 
 === 5. Send a pull request
 
@@ -161,15 +155,11 @@ Push your branch to GitHub:
 
 //== Code of conduct
 
-
-
 == Roadmap
 
 - Wider API coverage (custom models, accounting, audit, etc).
 - [Maybe] Add retry logic for possibly transient issues.
 - Fetch model list errors.
-
-
 
 
 == Support
