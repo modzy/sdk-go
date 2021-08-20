@@ -23,16 +23,16 @@ func main() {
 
 	apiKey := os.Getenv("MODZY_API_KEY")
 	baseURL := os.Getenv("MODZY_BASE_URL")
-	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
+	client := modzy.NewClient(baseURL + "/api").WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
 		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
 	}
 
-	// listJobsHistory(client)
+	listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
-	submitExampleTextWithFailures(client, false)
+	// submitExampleTextWithFailures(client, false)
 	// submitExampleEmbedded(client, true)
 	// submitExampleChunked(client, false)
 	// submitExampleS3(client, false)
