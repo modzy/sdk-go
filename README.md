@@ -174,6 +174,26 @@ Jobs requested for multiple input items may have partial results available prior
 results, err := job.JobActions.GetResults(ctx)
 ```
 
+### Fetch errors
+
+Errors may arise for different reasons. Fetch errors to know what is their cause and how to fix them.
+
+Error      | Description
+---------- | ---------
+`ModzyHTTPError` | Wrapper for different errors, check code, message, url attributes.
+
+Submitting jobs:
+
+```go
+var inputs map[string]string
+inputs['my-input'] = "Modzy is great!"
+job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{ModelIdentifier="ed542963de", ModelVersion="0.0.27", Inputs=inputs})
+if err != nil {
+    log.Fatalf("The job submission fails with code %s and message %s", err.Status, err.Message)
+    return
+}
+```
+
 ## Features
 
 Modzy supports [batch processing](https://docs.modzy.com/reference/batch-processing), [explainability](https://docs.modzy.com/reference/explainability), and [model drift detection](https://docs.modzy.com/reference/model-drift-1).
