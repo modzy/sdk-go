@@ -161,7 +161,7 @@ job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{ModelIden
 [Hold until the inference is complete and results become available](https://docs.modzy.com/reference/get-job-details):
 
 ```go
-job, err := client.Jobs().WaitForJobCompletion(job, 20*time.Second)
+job2, err := job.JobActions.WaitForCompletion(ctx, 20*time.Second)
 ```
 
 [Get the results](https://docs.modzy.com/reference/get-results):
@@ -171,7 +171,7 @@ Results are available per input item and can be identified with the name provide
 Jobs requested for multiple input items may have partial results available prior to job completion.
 
 ```go
-results, err := client.Jobs().GetJobResults(&modzy.GetJobResultsInput{JobIdentifier: job.JobIdentifier})
+results, err := job.JobActions.GetResults(ctx)
 ```
 
 ## Features
