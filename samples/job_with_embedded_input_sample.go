@@ -151,7 +151,8 @@ func main() {
                 }
             } else {
                 // If the model raises an error, we can get the specific error message:
-                log.Fatalf("    %s: %s\n", key, result.Data)
+                result = results.Results.Failures[key]
+                log.Printf("    %s: %s\n", key, result.Error)
             }
         }
 
