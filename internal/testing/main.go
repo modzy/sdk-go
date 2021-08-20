@@ -23,7 +23,7 @@ func main() {
 
 	apiKey := os.Getenv("MODZY_API_KEY")
 	baseURL := os.Getenv("MODZY_BASE_URL")
-	client := modzy.NewClient(baseURL + "/api").WithAPIKey(apiKey)
+	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
 		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
