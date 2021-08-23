@@ -63,45 +63,45 @@ func main() {
     // Amazon Simple Storage Service (AWS S3) is an object storage service (for more info visit: https://aws.amazon.com/s3/?nc1=h_ls).
     // It allows to store images, videos, or other content as files. In order to use as input type, provide the following properties:
     //    AWS Access Key: replace <<AccessKey>>
-    AccessKey := "<<AccessKey>>"
+    accessKey := "<<AccessKey>>"
     //    AWS Secret Access Key: replace <<SecretAccessKey>>
-    SecretAccessKey := "<<SecretAccessKey>>"
+    secretAccessKey := "<<SecretAccessKey>>"
     //    AWS Default Region : replace <<AWSRegion>>
-    Region := "<<AWSRegion>>"
+    region := "<<AWSRegion>>"
     //    The Bucket Name: replace <<BucketName>>
-    BucketName := "<<BucketName>>"
+    bucketName := "<<BucketName>>"
     //    The File Key: replace <<FileId>> (remember, this model needs an image as input)
-    FileKey := "<<FileId>>"
+    fileKey := "<<FileId>>"
     // With the info about the model (identifier) and the model version (version string, input/output keys), you are ready to
-    // submit the job. Just prepare the source dictionary:
+    // submit the job. Just prepare the S3InputItem map:
     mapSource := map[string]modzy.S3InputItem{
         "source-key": modzy.S3InputItem{
-            "image": modzy.S3Input(BucketName, FileKey),
+            "image": modzy.S3Input(bucketName, fileKey),
         },
     }
     // An inference job groups input data sent to a model. You can send any amount of inputs to
     // process and you can identify and refer to a specific input by the key assigned. For example we can add:
     mapSource["second-key"] = modzy.S3InputItem{
-        "image": modzy.S3Input(BucketName, FileKey),
+        "image": modzy.S3Input(bucketName, fileKey),
     }
     mapSource["another-key"] = modzy.S3InputItem{
-        "image": modzy.S3Input(BucketName, FileKey),
+        "image": modzy.S3Input(bucketName, fileKey),
     }
     // If you send a wrong input key, the model fails to process the input.
     mapSource["wrong-key"] = modzy.S3InputItem{
-        "a.wrong.key": modzy.S3Input(BucketName, FileKey),
+        "a.wrong.key": modzy.S3Input(bucketName, fileKey),
     }
     // If you send a correct input key, but a wrong AWS S3 value key, the model fails to process the input.
     mapInput := make(modzy.S3InputItem)
-    mapInput["image"] = modzy.S3Input(BucketName, "wrong-aws-file-key.png")
+    mapInput["image"] = modzy.S3Input(bucketName, "wrong-aws-file-key.png")
     mapSource["wrong-key"] = mapInput
     // When you have all your inputs ready, you can use our helper method to submit the job as follows:
     job, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
         ModelIdentifier:    model.Details.ModelID,
         ModelVersion:       modelVersion.Details.Version,
-        AWSAccessKeyID:     AccessKey,
-        AWSSecretAccessKey: SecretAccessKey,
-        AWSRegion:          Region,
+        AWSAccessKeyID:     accessKey,
+        AWSSecretAccessKey: secretAccessKey,
+        AWSRegion:          region,
         Inputs:             mapSource,
     })
     if err != nil {

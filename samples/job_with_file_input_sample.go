@@ -63,8 +63,8 @@ func main() {
     }
     // Send the job:
     // With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
-    // submit the job. Just prepare the source map:
-    // A file input can be a byte array or any file path. This input type fits for any size files.
+    // submit the job. Just prepare the FileInputItem map:
+    // A file input can be a Reader or any file path. This input type fits for any size files.
     imagePath  := "./samples/image.png"
     configPath := "./samples/config.json"
     mapSource := map[string]modzy.FileInputItem{

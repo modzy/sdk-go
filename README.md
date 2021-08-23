@@ -18,12 +18,10 @@
 
 ## Installation
 
-Add the dependency in your `go.mod` file:
+Add the dependency
 
-```go
-require (
-    github.com/modzy/sdk-go <<version>>
-)
+```bash
+go get -u github.com/modzy/sdk-go
 ```
 
 
@@ -135,7 +133,7 @@ for _, input := range out.Details.Inputs {
     )
 }
 fmt.Println("  outputs:")
-for _, input := range out.Details.Inputs {
+for _, output := range out.Details.Outputs {
     fmt.Printf(
         "    key %s, type %s, description: %s\n", output.Name, output.MediaType, output.Description
     )
@@ -153,7 +151,7 @@ Modzy supports several *input types* such as `text`, `embedded` for Base64 strin
 [Submit a job with the model, version, and input items](https://docs.modzy.com/reference/create-a-job-1):
 
 ```go
-job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+submitResponse, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
     ModelIdentifier="ed542963de",
     ModelVersion="0.0.27",
     Inputs=map[string]string{
@@ -167,7 +165,7 @@ job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 [Hold until the inference is complete and results become available](https://docs.modzy.com/reference/get-job-details):
 
 ```go
-job2, err := job.JobActions.WaitForCompletion(ctx, 20*time.Second)
+jobDetails, err := submitResponse.JobActions.WaitForCompletion(ctx, 20*time.Second)
 ```
 
 [Get the results](https://docs.modzy.com/reference/get-results):
@@ -177,7 +175,7 @@ Results are available per input item and can be identified with the name provide
 Jobs requested for multiple input items may have partial results available prior to job completion.
 
 ```go
-results, err := job.JobActions.GetResults(ctx)
+results, err := jobDetails.GetResults(ctx)
 ```
 
 ### Fetch errors
@@ -191,7 +189,7 @@ Error      | Description
 Submitting jobs:
 
 ```go
-job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+submitResponse, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
 	ModelIdentifier="ed542963de", 
 	ModelVersion="0.0.27", 
 	Inputs=map[string]string{
