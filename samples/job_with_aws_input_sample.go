@@ -13,7 +13,7 @@ func main() {
     // The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
     // You can configure those params as is described in the README file (as environment variables, or by using the .env file),
     // or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
-    ctx = context.TODO()
+    ctx := context.TODO()
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
@@ -35,6 +35,10 @@ func main() {
     model, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{Name: "Facial Embedding"})
     // Or if you already know the model id and want to know more about the model, you can use this instead:
     // model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "f7e252e26a"})
+    if err != nil {
+        log.Fatalf("Unexpected error %s", err)
+        return
+    }
     // You can find more information about how to query the models on the model_sample.go file.
     // The model identifier is under the ModelID key. You can take a look at the other properties under ModelDetails struct
     // Or just log the model identifier, and potentially the latest version
@@ -96,7 +100,7 @@ func main() {
     mapInput["image"] = modzy.S3Input(bucketName, "wrong-aws-file-key.png")
     mapSource["wrong-key"] = mapInput
     // When you have all your inputs ready, you can use our helper method to submit the job as follows:
-    job, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
+    submitResponse, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
         ModelIdentifier:    model.Details.ModelID,
         ModelVersion:       modelVersion.Details.Version,
         AWSAccessKeyID:     accessKey,
@@ -110,22 +114,22 @@ func main() {
     }
     // Modzy creates the job and queue for processing. The job object contains all the info that you need to keep track
     // of the process, the most important being the job identifier and the job status.
-    log.Printf("job: %s \n", job.Response.JobIdentifier)
+    log.Printf("job: %s \n", submitResponse.Response.JobIdentifier)
     // The job moves to SUBMITTED, meaning that Modzy acknowledged the job and sent it to the queue to be processed.
     // We provide a helper method to listen until the job finishes processing. Its a good practice to set a max timeout
     // if you're doing a test (ie: 2*status+run). Otherwise, if the timeout is set to None, it will listen until the job finishes and moves to
     // COMPLETED, CANCELED, or TIMEOUT.
-    job2, err := job.JobActions.WaitForCompletion(ctx, 20*time.Second)
+    jobDetails, err := submitResponse.WaitForCompletion(ctx, 20*time.Second)
     if err != nil {
         log.Fatalf("Unexpected error %s", err)
         return
     }
     // Get the results:
     // Check the status of the job. Jobs may be canceled or may reach a timeout.
-    if job2.Details.Status == "COMPLETED" {
+    if jobDetails.Details.Status == modzy.JobStatusCompleted {
         // A completed job means that all the inputs were processed by the model. Check the results for each
         // input key provided in the source map to see the model output.
-        results, err := job.JobActions.GetResults(ctx)
+        results, err := submitResponse.GetResults(ctx)
         // You can also get the results with the identifier (if you don't have the job object)
         //results, err := client.Jobs().GetJobResults(ctx, &modzy.GetJobResultsInput{JobIdentifier: job.Response.JobIdentifier})
         if err != nil {
@@ -157,6 +161,6 @@ func main() {
         }
 
     } else {
-        log.Fatalf("The job ends with status %s", job2.Details.Status)
+        log.Fatalf("The job ends with status %s", jobDetails.Details.Status)
     }
 }
