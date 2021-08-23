@@ -153,9 +153,15 @@ Modzy supports several *input types* such as `text`, `embedded` for Base64 strin
 [Submit a job with the model, version, and input items](https://docs.modzy.com/reference/create-a-job-1):
 
 ```go
-var inputs map[string]string
-inputs['my-input'] = "Modzy is great!"
-job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{ModelIdentifier="ed542963de", ModelVersion="0.0.27", Inputs=inputs})
+job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+    ModelIdentifier="ed542963de",
+    ModelVersion="0.0.27",
+    Inputs=map[string]string{
+        "my-input": {
+            "input.txt": "Modzy is great!"
+        }
+    }
+})
 ```
 
 [Hold until the inference is complete and results become available](https://docs.modzy.com/reference/get-job-details):
@@ -185,9 +191,15 @@ Error      | Description
 Submitting jobs:
 
 ```go
-var inputs map[string]string
-inputs['my-input'] = "Modzy is great!"
-job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{ModelIdentifier="ed542963de", ModelVersion="0.0.27", Inputs=inputs})
+job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
+	ModelIdentifier="ed542963de", 
+	ModelVersion="0.0.27", 
+	Inputs=map[string]string{
+		"my-input": {
+			"input.txt": "Modzy is great!"
+		}
+    }
+})
 if err != nil {
     log.Fatalf("The job submission fails with code %s and message %s", err.Status, err.Message)
     return

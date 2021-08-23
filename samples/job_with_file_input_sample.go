@@ -11,14 +11,11 @@ import (
     "time"
 )
 
-var (
-    ctx = context.TODO()
-)
-
 func main() {
     // The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
     // You can configure those params as is described in the README file (as environment variables, or by using the .env file),
     // or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
+    ctx = context.TODO()
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
@@ -70,34 +67,36 @@ func main() {
     // A file input can be a byte array or any file path. This input type fits for any size files.
     imagePath  := "./samples/image.png"
     configPath := "./samples/config.json"
-    mapSource := make(map[string]modzy.FileInputItem)
-    mapInput := make(modzy.FileInputItem)
-    mapInput["input"] = modzy.FileInputFile(imagePath)
-    mapInput["config.json"] = modzy.FileInputFile(configPath)
-    mapSource["source-key"] = mapInput
+    mapSource := map[string]modzy.FileInputItem{
+        "source-key": modzy.FileInputItem{
+            "input": modzy.FileInputFile(imagePath),
+            "config.json": modzy.FileInputFile(configPath),
+        },
+    }
     // An inference job groups input data that you send to a model. You can send any amount of inputs to
     // process and you can identify and refer to a specific input by the key that you assign, for example we can add:
-    mapInput = make(modzy.FileInputItem)
-    mapInput["input"] = modzy.FileInputFile(imagePath)
-    mapInput["config.json"] = modzy.FileInputFile(configPath)
-    mapSource["second-key"] = mapInput
+    mapSource["second-key"] = modzy.FileInputItem{
+        "input": modzy.FileInputFile(imagePath),
+        "config.json": modzy.FileInputFile(configPath),
+    }
     // You don't need to load all the inputs from files, you can just convert the files to bytes as follows:
     imageBytes, err := ioutil.ReadFile(imagePath)
     configBytes := []byte("{\"languages\":[\"spa\"]}")
-    mapInput = make(modzy.FileInputItem)
-    mapInput["input"] = modzy.FileInputReader(bytes.NewReader(imageBytes))
-    mapInput["config.json"] = modzy.FileInputReader(bytes.NewReader(configBytes))
-    mapSource["another-key"] = mapInput
+    mapSource["another-key"] = modzy.FileInputItem{
+        "input": modzy.FileInputReader(bytes.NewReader(imageBytes)),
+        "config.json": modzy.FileInputReader(bytes.NewReader(configBytes)),
+    }
     //If you send a wrong input key, the model fails to process the input.
-    mapInput = make(modzy.FileInputItem)
-    mapInput["a.wrong.key"] = modzy.FileInputFile(imagePath)
-    mapInput["config.json"] = modzy.FileInputFile(configPath)
-    mapSource["wrong-key"] = mapInput
+    mapSource["wrong-key"] = modzy.FileInputItem{
+        "input": modzy.FileInputFile(imagePath),
+        "config.json": modzy.FileInputFile(configPath),
+    }
     //If you send a correct input key but some wrong values, the model fails too.
-    mapInput = make(modzy.FileInputItem)
+    mapInput := make(modzy.FileInputItem)
     mapInput["input"] = modzy.FileInputFile(configPath)
     mapInput["config.json"] = modzy.FileInputFile(imagePath)
     mapSource["wrong-value"] = mapInput
+    //
     job, err := client.Jobs().SubmitJobFile(ctx, &modzy.SubmitJobFileInput{
         ModelIdentifier: model.Details.ModelID,
         ModelVersion: modelVersion.Details.Version,

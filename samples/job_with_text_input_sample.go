@@ -9,14 +9,11 @@ import (
     "time"
 )
 
-var (
-    ctx = context.TODO()
-)
-
 func main() {
     // The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
     // You can configure those params as is described in the README file (as environment variables, or by using the .env file),
     // or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
+    ctx = context.TODO()
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
@@ -66,22 +63,23 @@ func main() {
     // Send the job:
     // With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
     // submit the job. Just prepare the source map:
-    mapSource := make(map[string]modzy.TextInputItem)
-    mapInput := make(modzy.TextInputItem)
-    mapInput["input.txt"] = "Modzy is great!"
-    mapSource["source-key"] = mapInput
+    mapSource := map[string]modzy.TextInputItem{
+        "source-key": {
+            "input.txt": "Modzy is great!",
+        },
+    }
     // An inference job groups input data that you send to a model. You can send any amount of inputs to
     // process and you can identify and refer to a specific input by the key that you assign, for example we can add:
-    mapInput = make(modzy.TextInputItem)
-    mapInput["input.txt"] = "Sometimes I really hate ribs"
-    mapSource["second-key"] = mapInput
-    mapInput = make(modzy.TextInputItem)
+    mapSource["second-key"] = modzy.TextInputItem{
+        "input.txt": "Sometimes I really hate ribs",
+    }
+    mapInput := make(modzy.TextInputItem)
     mapInput["input.txt"] = "Born and raised in Pennsylvania, Swift moved to Nashville, Tennessee, at the age of 14 to pursue a career in country music"
     mapSource["another-key"] = mapInput
     //If you send a wrong input key, the model fails to process the input.
-    mapInput = make(modzy.TextInputItem)
-    mapInput["a.wrong.key"] = "This input is wrong!"
-    mapSource["wrong-key"] = mapInput
+    mapSource["wrong-key"] = modzy.TextInputItem{
+        "a.wrong.key": "This input is wrong!",
+    }
     // When you have all your inputs ready, you can use our helper method to submit the job as follows:
     job, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
         ModelIdentifier: model.Details.ModelID,

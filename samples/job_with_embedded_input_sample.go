@@ -11,14 +11,11 @@ import (
     "time"
 )
 
-var (
-    ctx = context.TODO()
-)
-
 func main() {
     // The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
     // You can configure those params as is described in the README file (as environment variables, or by using the .env file),
     // or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
+    ctx = context.TODO()
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
@@ -70,32 +67,33 @@ func main() {
     imagePath  := "./samples/image.png"
     configPath := "./samples/config.json"
     // With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
-    // submit the job. Just prepare the EmbeddedInput dictionary:
-    mapSource := make(map[string]modzy.EmbeddedInputItem)
-    mapInput := make(modzy.EmbeddedInputItem)
-    mapInput["input"] = modzy.URIEncodeFile(imagePath, "image/png")
-    mapInput["config.json"] = modzy.URIEncodeFile(configPath, "application/json")
-    mapSource["source-key"] = mapInput
+    // submit the job. Just prepare the FileInputItem map:
+    mapSource := map[string]modzy.EmbeddedInputItem{
+        "source-key": modzy.EmbeddedInputItem{
+            "input": modzy.URIEncodeFile(imagePath, "image/png"),
+            "config.json": modzy.URIEncodeFile(configPath, "application/json"),
+        },
+    }
     // An inference job groups input data that you send to a model. You can send any amount of inputs to
     // process and you can identify and refer to a specific input by the key that you assign, for example we can add:
-    mapInput = make(modzy.EmbeddedInputItem)
-    mapInput["input"] = modzy.URIEncodeFile(imagePath, "image/png")
-    mapInput["config.json"] = modzy.URIEncodeFile(configPath, "application/json")
-    mapSource["second-key"] = mapInput
+    mapSource["second-key"] = modzy.EmbeddedInputItem{
+        "input": modzy.URIEncodeFile(imagePath, "image/png"),
+        "config.json": modzy.URIEncodeFile(configPath, "application/json"),
+    }
     // You don't need to load all the inputs from files, you can just convert the files to bytes as follows:
     imageBytes, err := ioutil.ReadFile(imagePath)
     configBytes := []byte("{\"languages\":[\"spa\"]}")
-    mapInput = make(modzy.EmbeddedInputItem)
-    mapInput["input"] = modzy.URIEncodeReader(bytes.NewReader(imageBytes), "image/png")
-    mapInput["config.json"] = modzy.URIEncodeReader(bytes.NewReader(configBytes), "application/json")
-    mapSource["another-key"] = mapInput
+    mapSource["another-key"] = modzy.EmbeddedInputItem{
+        "input": modzy.URIEncodeReader(bytes.NewReader(imageBytes), "image/png"),
+        "config.json": modzy.URIEncodeReader(bytes.NewReader(configBytes), "application/json"),
+    }
     //If you send a wrong input key, the model fails to process the input.
-    mapInput = make(modzy.EmbeddedInputItem)
-    mapInput["a.wrong.key"] = modzy.URIEncodeFile(imagePath, "image/png")
-    mapInput["config.json"] = modzy.URIEncodeFile(configPath, "application/json")
-    mapSource["wrong-key"] = mapInput
+    mapSource["a.wrong.key"] = modzy.EmbeddedInputItem{
+        "input": modzy.URIEncodeFile(imagePath, "image/png"),
+        "config.json": modzy.URIEncodeFile(configPath, "application/json"),
+    }
     //If you send a correct input key but some wrong values, the model fails too.
-    mapInput = make(modzy.EmbeddedInputItem)
+    mapInput := make(modzy.EmbeddedInputItem)
     mapInput["input"] = modzy.URIEncodeFile(configPath, "image/png")
     mapInput["config.json"] = modzy.URIEncodeFile(imagePath, "application/json")
     mapSource["wrong-value"] = mapInput
