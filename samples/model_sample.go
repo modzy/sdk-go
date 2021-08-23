@@ -8,14 +8,11 @@ import (
     "os"
 )
 
-var (
-    ctx = context.TODO()
-)
-
 func main() {
     // The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
     // You can configure those params as is described in the README file (as environment variables, or by using the .env file),
     // or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
+    ctx := context.TODO()
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
