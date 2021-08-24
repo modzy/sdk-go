@@ -55,7 +55,6 @@ func (c *standardDashboardClient) GetAlertDetails(ctx context.Context, input *Ge
 	if err != nil {
 		return nil, err
 	}
-
 	return &GetAlertDetailsOutput{
 		Type:     input.Type,
 		Entities: out,
@@ -63,13 +62,17 @@ func (c *standardDashboardClient) GetAlertDetails(ctx context.Context, input *Ge
 }
 
 func (c *standardDashboardClient) GetDataProcessed(ctx context.Context, input *GetDataProcessedInput) (*GetDataProcessedOutput, error) {
-	url, err := c.parseDashboardFilters("/api/metrics/predictions-made", input.DashboardFilters)
-	if err != nil {
-		return nil, err
-	}
+	url := c.parseDashboardFilters("/api/metrics/data-processed", dashboardFilters{
+		BeginDate:       input.BeginDate,
+		EndDate:         input.EndDate,
+		UserIdentifier:  input.UserIdentifier,
+		AccessKeyPrefix: input.AccessKeyPrefix,
+		ModelIdentifier: input.ModelIdentifier,
+		TeamIdentifier:  input.TeamIdentifier,
+	})
 
 	var out GetDataProcessedOutput
-	_, err = c.baseClient.requestor.Get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +81,17 @@ func (c *standardDashboardClient) GetDataProcessed(ctx context.Context, input *G
 }
 
 func (c *standardDashboardClient) GetPredictionsMade(ctx context.Context, input *GetPredictionsMadeInput) (*GetPredictionsMadeOutput, error) {
-	url, err := c.parseDashboardFilters("/api/metrics/predictions-made", input.DashboardFilters)
-	if err != nil {
-		return nil, err
-	}
+	url := c.parseDashboardFilters("/api/metrics/predictions-made", dashboardFilters{
+		BeginDate:       input.BeginDate,
+		EndDate:         input.EndDate,
+		UserIdentifier:  input.UserIdentifier,
+		AccessKeyPrefix: input.AccessKeyPrefix,
+		ModelIdentifier: input.ModelIdentifier,
+		TeamIdentifier:  input.TeamIdentifier,
+	})
 
 	var out GetPredictionsMadeOutput
-	_, err = c.baseClient.requestor.Get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +100,17 @@ func (c *standardDashboardClient) GetPredictionsMade(ctx context.Context, input 
 }
 
 func (c *standardDashboardClient) GetActiveUsers(ctx context.Context, input *GetActiveUsersInput) (*GetActiveUsersOutput, error) {
-	url, err := c.parseDashboardFilters("/api/metrics/active-users", input.DashboardFilters)
-	if err != nil {
-		return nil, err
-	}
+	url := c.parseDashboardFilters("/api/metrics/active-users", dashboardFilters{
+		BeginDate:       input.BeginDate,
+		EndDate:         input.EndDate,
+		UserIdentifier:  input.UserIdentifier,
+		AccessKeyPrefix: input.AccessKeyPrefix,
+		ModelIdentifier: input.ModelIdentifier,
+		TeamIdentifier:  input.TeamIdentifier,
+	})
 
 	var out []model.ActiveUserSummary
-	_, err = c.baseClient.requestor.Get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -110,13 +121,17 @@ func (c *standardDashboardClient) GetActiveUsers(ctx context.Context, input *Get
 }
 
 func (c *standardDashboardClient) GetActiveModels(ctx context.Context, input *GetActiveModelsInput) (*GetActiveModelsOutput, error) {
-	url, err := c.parseDashboardFilters("/api/metrics/active-models", input.DashboardFilters)
-	if err != nil {
-		return nil, err
-	}
+	url := c.parseDashboardFilters("/api/metrics/active-models", dashboardFilters{
+		BeginDate:       input.BeginDate,
+		EndDate:         input.EndDate,
+		UserIdentifier:  input.UserIdentifier,
+		AccessKeyPrefix: input.AccessKeyPrefix,
+		ModelIdentifier: input.ModelIdentifier,
+		TeamIdentifier:  input.TeamIdentifier,
+	})
 
 	var out []model.ActiveModelSummary
-	_, err = c.baseClient.requestor.Get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -127,16 +142,16 @@ func (c *standardDashboardClient) GetActiveModels(ctx context.Context, input *Ge
 }
 
 func (c *standardDashboardClient) GetPrometheusMetric(ctx context.Context, input *GetPrometheusMetricInput) (*GetPrometheusMetricOutput, error) {
-	url, err := c.parseDashboardFilters(
+	url := c.parseDashboardFilters(
 		fmt.Sprintf("/api/metrics/prometheus/%s", input.Metric),
-		DashboardFilters{BeginEndFilters: input.BeginEndFilters},
+		dashboardFilters{
+			BeginDate: input.BeginDate,
+			EndDate:   input.EndDate,
+		},
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	var out model.PrometheusResponse
-	_, err = c.baseClient.requestor.Get(ctx, url, &out)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -154,14 +169,15 @@ func (c *standardDashboardClient) GetPrometheusMetric(ctx context.Context, input
 				continue
 			}
 
-			parsedIntTime, err := strconv.ParseInt(msgParts[0], 10, 64)
+			parsedIntTime, err := strconv.ParseInt(strings.TrimSpace(msgParts[0]), 10, 64)
 			if err != nil {
 				continue
 			}
 
+			parsedValue := strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(msgParts[1]), `"`), `"`)
 			parsedValues = append(parsedValues, PrometheusValue{
 				Time:  time.Unix(parsedIntTime, 0),
-				Value: fmt.Sprintf("%v", msgParts[1]),
+				Value: fmt.Sprintf("%v", parsedValue),
 			})
 		}
 	}
@@ -171,7 +187,7 @@ func (c *standardDashboardClient) GetPrometheusMetric(ctx context.Context, input
 	}, nil
 }
 
-func (c *standardDashboardClient) parseDashboardFilters(path string, filters DashboardFilters) (string, error) {
+func (c *standardDashboardClient) parseDashboardFilters(path string, filters dashboardFilters) string {
 	partialUrl, err := url.Parse(path)
 	impossible.HandleError(err)
 
@@ -195,5 +211,14 @@ func (c *standardDashboardClient) parseDashboardFilters(path string, filters Das
 		q.Add("team-identifier", filters.TeamIdentifier)
 	}
 	partialUrl.RawQuery = q.Encode()
-	return partialUrl.String(), nil
+	return partialUrl.String()
+}
+
+type dashboardFilters struct {
+	BeginDate       model.ModzyDate
+	EndDate         model.ModzyDate
+	UserIdentifier  string
+	AccessKeyPrefix string
+	ModelIdentifier string
+	TeamIdentifier  string
 }

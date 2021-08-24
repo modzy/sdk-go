@@ -40,7 +40,12 @@ type GetAlertDetailsOutput struct {
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetDataProcessedInput struct {
-	DashboardFilters
+	BeginDate       model.ModzyDate
+	EndDate         model.ModzyDate
+	UserIdentifier  string
+	AccessKeyPrefix string
+	ModelIdentifier string
+	TeamIdentifier  string
 }
 
 type GetDataProcessedOutput struct {
@@ -51,16 +56,26 @@ type GetDataProcessedOutput struct {
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetPredictionsMadeInput struct {
-	DashboardFilters
+	BeginDate       model.ModzyDate
+	EndDate         model.ModzyDate
+	UserIdentifier  string
+	AccessKeyPrefix string
+	ModelIdentifier string
+	TeamIdentifier  string
 }
 
 type GetPredictionsMadeOutput struct {
-	Summary model.PredictionsMadeSummary  `json:"predicationsMade"`
+	Summary model.PredictionsMadeSummary  `json:"predictionsMade"`
 	Recent  []model.PredictionsMadeRecent `json:"recent"`
 }
 
 type GetActiveUsersInput struct {
-	DashboardFilters
+	BeginDate       model.ModzyDate
+	EndDate         model.ModzyDate
+	UserIdentifier  string
+	AccessKeyPrefix string
+	ModelIdentifier string
+	TeamIdentifier  string
 }
 
 type GetActiveUsersOutput struct {
@@ -68,19 +83,16 @@ type GetActiveUsersOutput struct {
 }
 
 type GetActiveModelsInput struct {
-	DashboardFilters
-}
-
-type GetActiveModelsOutput struct {
-	Models []model.ActiveModelSummary `json:"models"`
-}
-
-type DashboardFilters struct {
-	BeginEndFilters
+	BeginDate       model.ModzyDate
+	EndDate         model.ModzyDate
 	UserIdentifier  string
 	AccessKeyPrefix string
 	ModelIdentifier string
 	TeamIdentifier  string
+}
+
+type GetActiveModelsOutput struct {
+	Models []model.ActiveModelSummary `json:"models"`
 }
 
 type PrometheusMetricType string
@@ -108,15 +120,9 @@ const (
 
 // The default and minimum accepted time between startDate and endDate is 7 days.
 type GetPrometheusMetricInput struct {
-	BeginEndFilters
+	BeginDate model.ModzyDate
+	EndDate   model.ModzyDate
 	Metric    PrometheusMetricType
-	BeginDate model.ModzyDate
-	EndDate   model.ModzyDate
-}
-
-type BeginEndFilters struct {
-	BeginDate model.ModzyDate
-	EndDate   model.ModzyDate
 }
 
 type PrometheusValue struct {
