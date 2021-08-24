@@ -26,10 +26,10 @@ func main() {
 	client := modzy.NewClient(baseURL).WithAPIKey(apiKey)
 
 	if os.Getenv("MODZY_DEBUG") == "1" {
-		client = client.WithOptions(modzy.WithHTTPDebugging(true, true))
+		client = client.WithOptions(modzy.WithHTTPDebugging(false, false))
 	}
 
-	listJobsHistory(client)
+	// listJobsHistory(client)
 	// errorChecking()
 	// submitExampleText(client, false)
 	// submitExampleTextWithFailures(client, false)
@@ -49,6 +49,7 @@ func main() {
 	// listModelVersions(client, "ed542963de")
 	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
 	// getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
+	getDashboard(client)
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -438,5 +439,90 @@ func updateModelProcessingEngines(client modzy.Client, modelID string, version s
 		logrus.WithError(err).Fatalf("Failed to patch processing engines")
 	} else {
 		logrus.Infof("Patched processing engines to be: %+v", newOut.Details.Processing)
+	}
+}
+
+func getDashboard(client modzy.Client) {
+	// alerts
+	if alerts, err := client.Dashboard().GetAlerts(ctx, &modzy.GetAlertsInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get alerts")
+	} else {
+		if len(alerts.Alerts) == 0 {
+			logrus.Infof("No alerts")
+		}
+		for _, a := range alerts.Alerts {
+			logrus.Infof("  Alert %s (%d)", a.Type, a.Count)
+			alertDetails, err := client.Dashboard().GetAlertDetails(ctx, &modzy.GetAlertDetailsInput{
+				Type: a.Type,
+			})
+			if err != nil {
+				logrus.WithError(err).Errorf("Failed to read alert details")
+			} else {
+				for _, ad := range alertDetails.Entities {
+					logrus.Infof("  %s", ad)
+				}
+			}
+		}
+	}
+
+	// processed
+	if out, err := client.Dashboard().GetDataProcessed(ctx, &modzy.GetDataProcessedInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get data-processed")
+	} else {
+		logrus.Infof("Data processed: %d -> %d (%f%%) %v",
+			out.Summary.RecentBytes, out.Summary.RecentBytes,
+			out.Summary.Percentage, out.Recent,
+		)
+	}
+
+	// predictions-made
+	if out, err := client.Dashboard().GetPredictionsMade(ctx, &modzy.GetPredictionsMadeInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get predictions-made")
+	} else {
+		logrus.Infof("Predictions made: %d -> %d (%f%%) %v",
+			out.Summary.RecentPredictions, out.Summary.RecentPredictions,
+			out.Summary.Percentage, out.Recent,
+		)
+	}
+
+	// active-users
+	if out, err := client.Dashboard().GetActiveUsers(ctx, &modzy.GetActiveUsersInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get active-users")
+	} else {
+		logrus.Infof("Active Users:")
+		if len(out.Users) == 0 {
+			logrus.Infof("  No active users")
+		}
+		for _, a := range out.Users {
+			logrus.Infof("  #%d: %s %s (%d)", a.Ranking, a.FirstName, a.LastName, a.ElapsedTime)
+		}
+	}
+
+	// active-models
+	if out, err := client.Dashboard().GetActiveModels(ctx, &modzy.GetActiveModelsInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get active-models")
+	} else {
+		logrus.Infof("Active Models:")
+		if len(out.Models) == 0 {
+			logrus.Infof("  No active models")
+		}
+		for _, a := range out.Models {
+			logrus.Infof("  #%d: %s v%s (%d)", a.Ranking, a.Name, a.Version, a.ElapsedTime)
+		}
+	}
+
+	// cpu-overall-usage
+	if out, err := client.Dashboard().GetPrometheusMetric(ctx, &modzy.GetPrometheusMetricInput{
+		Metric: modzy.PrometheusMetricTypeCPUOverallUsage,
+	}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get cpu-overall-usage")
+	} else {
+		logrus.Infof("CPU usage:")
+		if len(out.Values) == 0 {
+			logrus.Infof("  No data")
+		}
+		logrus.Infof("  %s: %s", out.Values[0].Time, out.Values[0].Value)
+		logrus.Info("  ...")
+		logrus.Infof("  %s: %s", out.Values[len(out.Values)-1].Time, out.Values[len(out.Values)-1].Value)
 	}
 }

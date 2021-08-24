@@ -10,9 +10,9 @@ import (
 // There are multiple time formats coming back from the API
 const (
 	// 2021-07-20T01:40:11.187+0000
-	DateFormat = "2006-01-02T15:04:05.999-0700"
+	TimeFormat = "2006-01-02T15:04:05.999-0700"
 	// 2021-07-20T01:40:09.560+00:00
-	DateFormat2 = "2006-01-02T15:04:05.999-07:00"
+	TimeFormat2 = "2006-01-02T15:04:05.999-07:00"
 )
 
 type ModzyTime struct {
@@ -28,7 +28,7 @@ func (mt *ModzyTime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	for _, df := range []string{DateFormat, DateFormat2} {
+	for _, df := range []string{TimeFormat, TimeFormat2} {
 		if t, err := time.Parse(df, clean); err == nil {
 			*mt = ModzyTime{Time: t}
 			return nil
@@ -46,5 +46,5 @@ func (mt ModzyTime) MarshalJSON() ([]byte, error) {
 }
 
 func (mt ModzyTime) String() string {
-	return mt.Time.Format(DateFormat)
+	return mt.Time.Format(TimeFormat)
 }

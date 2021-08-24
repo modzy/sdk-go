@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ClientFake is meant to help in mocking the JobsClient interface easily for unit testing.
+// JobsClientFake is meant to help in mocking the JobsClient interface easily for unit testing.
 type JobsClientFake struct {
 	GetJobDetailsFunc        func(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	ListJobsHistoryFunc      func(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
