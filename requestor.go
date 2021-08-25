@@ -107,7 +107,6 @@ func (r *requestor) execute(
 		// non OK response
 		apiError := &ModzyHTTPError{}
 		if err := json.NewDecoder(toDecode).Decode(apiError); err != nil {
-			logrus.WithError(err).Warnf("failed parsing non 200 response of %d from %s:%s", resp.StatusCode, method, path)
 			return resp, fmt.Errorf("request to %s failed with response: %s", req.URL, resp.Status)
 		}
 		return resp, apiError

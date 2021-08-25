@@ -86,3 +86,13 @@ func TestClientModels(t *testing.T) {
 		t.Errorf("modelsClient did not return")
 	}
 }
+
+func TestClientDashboard(t *testing.T) {
+	dashboardClient := &standardDashboardClient{}
+	c := (&standardClient{
+		dashboardClient: dashboardClient,
+	})
+	if c.Dashboard() != dashboardClient {
+		t.Errorf("dashboardClient did not return")
+	}
+}

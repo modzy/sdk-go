@@ -8,6 +8,7 @@ type ClientFake struct {
 	AccountingFunc  func() AccountingClient
 	JobsFunc        func() JobsClient
 	ModelsFunc      func() ModelsClient
+	DashboardFunc   func() DashboardClient
 }
 
 var _ Client = &ClientFake{}
@@ -34,4 +35,8 @@ func (c *ClientFake) Jobs() JobsClient {
 
 func (c *ClientFake) Models() ModelsClient {
 	return c.ModelsFunc()
+}
+
+func (c *ClientFake) Dashboard() DashboardClient {
+	return c.DashboardFunc()
 }
