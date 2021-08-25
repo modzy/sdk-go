@@ -91,3 +91,11 @@ type ListProjectsOutput struct {
 	Projects []model.AccountingProject `json:"projects"`
 	NextPage *ListProjectsInput        `json:"nextPage"`
 }
+
+type GetProjectDetailsInput struct {
+	ProjectID string
+}
+
+type GetProjectDetailsOutput struct {
+	Project model.AccountingProject `json:"project"`
+}

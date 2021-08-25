@@ -570,5 +570,14 @@ func listProjects(client modzy.Client) {
 	logrus.Infof("Found %d projects", len(out.Projects))
 	for _, p := range out.Projects {
 		logrus.Infof("- %s, %s", p.Name, p.Status)
+
+		project, err := client.Accounting().GetProjectDetails(ctx, &modzy.GetProjectDetailsInput{
+			ProjectID: p.Identifier,
+		})
+		if err != nil {
+			logrus.WithError(err).Errorf("  Failed reading details")
+		} else {
+			logrus.Infof("  AccessKey prefix: %s", project.Project.AccessKeys[0].Prefix)
+		}
 	}
 }

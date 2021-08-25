@@ -203,3 +203,40 @@ func TestListProjects(t *testing.T) {
 		t.Errorf("expected NextPage to be next")
 	}
 }
+
+func TestGetProjectDetailsHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	_, err := client.Accounting().GetProjectDetails(context.TODO(), &GetProjectDetailsInput{
+		ProjectID: "projid",
+	})
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestGetProjectDetails(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("expected method to be GET, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/accounting/projects/projid" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`{"name": "jsonID"}`))
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	out, err := client.Accounting().GetProjectDetails(context.TODO(), &GetProjectDetailsInput{
+		ProjectID: "projid",
+	})
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Project.Name != "jsonID" {
+		t.Errorf("response not parsed")
+	}
+}
