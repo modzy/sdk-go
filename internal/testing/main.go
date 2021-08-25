@@ -49,7 +49,8 @@ func main() {
 	// listModelVersions(client, "ed542963de")
 	// updateModelProcessingEngines(client, "ed542963de", "0.0.27")
 	// getModelSampleInputAndOutput(client, "ed542963de", "0.0.27")
-	getDashboard(client)
+	// getDashboard(client)
+	listProjects(client)
 }
 
 func listJobsHistory(client modzy.Client) {
@@ -558,4 +559,16 @@ func getDashboard(client modzy.Client) {
 		logrus.Infof("# Latest Models : %d\n", len(out.Models))
 	}
 
+}
+
+func listProjects(client modzy.Client) {
+	out, err := client.Accounting().ListProjects(ctx, (&modzy.ListProjectsInput{}))
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to list projects")
+		return
+	}
+	logrus.Infof("Found %d projects", len(out.Projects))
+	for _, p := range out.Projects {
+		logrus.Infof("- %s, %s", p.Name, p.Status)
+	}
 }

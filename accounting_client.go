@@ -16,6 +16,8 @@ type AccountingClient interface {
 	GetLicense(ctx context.Context) (*GetLicenseOutput, error)
 	// ListAccountingUsers returns account user information
 	ListAccountingUsers(ctx context.Context, input *ListAccountingUsersInput) (*ListAccountingUsersOutput, error)
+	// ListProjects will list your projects
+	ListProjects(ctx context.Context, input *ListProjectsInput) (*ListProjectsOutput, error)
 }
 
 type standardAccountingClient struct {
@@ -90,6 +92,30 @@ func (c *standardAccountingClient) ListAccountingUsers(ctx context.Context, inpu
 
 	return &ListAccountingUsersOutput{
 		Users:    items,
+		NextPage: nextPage,
+	}, nil
+}
+
+func (c *standardAccountingClient) ListProjects(ctx context.Context, input *ListProjectsInput) (*ListProjectsOutput, error) {
+	input.Paging = input.Paging.withDefaults()
+
+	var items []model.AccountingProject
+	url := "/api/accounting/projects"
+	_, links, err := c.baseClient.requestor.List(ctx, url, input.Paging, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	// decide if we have a next page (the next link is not always accurate?)
+	var nextPage *ListProjectsInput
+	if _, hasNextLink := links["next"]; len(items) == input.Paging.PerPage && hasNextLink {
+		nextPage = &ListProjectsInput{
+			Paging: input.Paging.Next(),
+		}
+	}
+
+	return &ListProjectsOutput{
+		Projects: items,
 		NextPage: nextPage,
 	}, nil
 }
