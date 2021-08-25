@@ -20,6 +20,13 @@ func TestModelsClientFake(t *testing.T) {
 			}
 			return nil, nil
 		},
+		GetLatestModelsFunc: func(ctx context.Context) (*GetLatestModelsOutput, error) {
+			calls++
+			if ctx != expectedCtx {
+				t.Errorf("not expected ctx")
+			}
+			return nil, nil
+		},
 		GetMinimumEnginesFunc: func(ctx context.Context) (*GetMinimumEnginesOutput, error) {
 			calls++
 			if ctx != expectedCtx {
@@ -127,6 +134,7 @@ func TestModelsClientFake(t *testing.T) {
 	}
 
 	fake.ListModels(expectedCtx, &ListModelsInput{})
+	fake.GetLatestModels(expectedCtx)
 	fake.GetMinimumEngines(expectedCtx)
 	fake.UpdateModelProcessingEngines(expectedCtx, &UpdateModelProcessingEnginesInput{})
 	fake.GetModelDetails(expectedCtx, &GetModelDetailsInput{})
@@ -139,7 +147,7 @@ func TestModelsClientFake(t *testing.T) {
 	fake.GetTags(expectedCtx)
 	fake.GetTagModels(expectedCtx, &GetTagModelsInput{})
 
-	if calls != 12 {
+	if calls != 13 {
 		t.Errorf("Did not call all of the funcs: %d", calls)
 	}
 }

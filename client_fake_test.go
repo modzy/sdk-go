@@ -48,6 +48,10 @@ func TestClientFake(t *testing.T) {
 			calls++
 			return nil
 		},
+		ResourcesFunc: func() ResourcesClient {
+			calls++
+			return nil
+		},
 	}
 	fake.WithAPIKey("apiKey")
 	fake.WithTeamKey("teamID", "token")
@@ -56,8 +60,9 @@ func TestClientFake(t *testing.T) {
 	fake.Jobs()
 	fake.Models()
 	fake.Dashboard()
+	fake.Resources()
 
-	if calls != 7 {
+	if calls != 8 {
 		t.Errorf("Did not call all of the funcs: %d", calls)
 	}
 }

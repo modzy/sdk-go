@@ -48,6 +48,41 @@ func TestGetModelVersionDetails(t *testing.T) {
 	}
 }
 
+func TestGetLatestModelsHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Models().GetLatestModels(context.TODO())
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestGetLatestModels(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("expected method to be GET, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/models/latest" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`[{"name": "some-name"}]`))
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	out, err := client.Models().GetLatestModels(context.TODO())
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Models[0].Name != "some-name" {
+		t.Errorf("response not parsed")
+	}
+}
+
 func TestGetMinimumEnginesHTTPError(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)

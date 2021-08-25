@@ -7,6 +7,7 @@ import (
 // ModelsClientFake is meant to help in mocking the ModelsClient interface easily for unit testing.
 type ModelsClientFake struct {
 	ListModelsFunc                   func(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
+	GetLatestModelsFunc              func(ctx context.Context) (*GetLatestModelsOutput, error)
 	GetMinimumEnginesFunc            func(ctx context.Context) (*GetMinimumEnginesOutput, error)
 	UpdateModelProcessingEnginesFunc func(ctx context.Context, input *UpdateModelProcessingEnginesInput) (*UpdateModelProcessingEnginesOutput, error)
 	GetModelDetailsFunc              func(ctx context.Context, input *GetModelDetailsInput) (*GetModelDetailsOutput, error)
@@ -24,6 +25,10 @@ var _ ModelsClient = &ModelsClientFake{}
 
 func (c *ModelsClientFake) ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error) {
 	return c.ListModelsFunc(ctx, input)
+}
+
+func (c *ModelsClientFake) GetLatestModels(ctx context.Context) (*GetLatestModelsOutput, error) {
+	return c.GetLatestModelsFunc(ctx)
 }
 
 func (c *ModelsClientFake) GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error) {
