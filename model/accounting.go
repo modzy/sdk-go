@@ -17,3 +17,8 @@ type AccountingUser struct {
 	Visited            bool      `json:"visited"`
 	Onboarded          bool      `json:"onboarded"`
 }
+
+type License struct {
+	CompanyName       string `json:"companyName"`
+	ProcessingEngines string `json:"processingEngines"`
+}

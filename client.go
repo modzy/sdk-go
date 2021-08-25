@@ -22,6 +22,8 @@ type Client interface {
 	Models() ModelsClient
 	// Dashboard returns a client for access to dashboard API functions
 	Dashboard() DashboardClient
+	// Resources returns a client for access to resource information
+	Resources() ResourcesClient
 }
 
 type standardClient struct {
@@ -29,6 +31,7 @@ type standardClient struct {
 	jobsClient       *standardJobsClient
 	modelsClient     *standardModelsClient
 	dashboardClient  *standardDashboardClient
+	resourcesClient  *standardResourcesClient
 	requestor        *requestor
 }
 
@@ -65,6 +68,9 @@ func NewClient(baseURL string, opts ...ClientOption) Client {
 		baseClient: client,
 	}
 	client.dashboardClient = &standardDashboardClient{
+		baseClient: client,
+	}
+	client.resourcesClient = &standardResourcesClient{
 		baseClient: client,
 	}
 
@@ -109,4 +115,8 @@ func (c *standardClient) Models() ModelsClient {
 
 func (c *standardClient) Dashboard() DashboardClient {
 	return c.dashboardClient
+}
+
+func (c *standardClient) Resources() ResourcesClient {
+	return c.resourcesClient
 }

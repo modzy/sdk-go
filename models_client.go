@@ -12,6 +12,8 @@ import (
 type ModelsClient interface {
 	// ListModels lists all models.  This supports paging and filtering.
 	ListModels(ctx context.Context, input *ListModelsInput) (*ListModelsOutput, error)
+	// GetLatestModels returns all of the recent models for your team
+	GetLatestModels(ctx context.Context) (*GetLatestModelsOutput, error)
 	// GetMinimumEngines reads the engine configuration values
 	GetMinimumEngines(ctx context.Context) (*GetMinimumEnginesOutput, error)
 	// UpdateModelProcessingEngines updates the engine configuration values
@@ -52,6 +54,19 @@ func (c *standardModelsClient) GetModelVersionDetails(ctx context.Context, input
 
 	return &GetModelVersionDetailsOutput{
 		Details: out,
+	}, nil
+}
+
+func (c *standardModelsClient) GetLatestModels(ctx context.Context) (*GetLatestModelsOutput, error) {
+	var out []model.ModelDetails
+	url := "/api/models/latest"
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetLatestModelsOutput{
+		Models: out,
 	}, nil
 }
 

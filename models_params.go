@@ -169,3 +169,7 @@ type GetModelVersionSampleOutputInput struct {
 type GetModelVersionSampleOutputOutput struct {
 	Sample string `json:"sample"`
 }
+
+type GetLatestModelsOutput struct {
+	Models []model.ModelDetails `json:"models"`
+}

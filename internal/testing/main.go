@@ -525,4 +525,37 @@ func getDashboard(client modzy.Client) {
 		logrus.Info("  ...")
 		logrus.Infof("  %s: %s", out.Values[len(out.Values)-1].Time, out.Values[len(out.Values)-1].Value)
 	}
+
+	// accounting-users
+	if out, err := client.Accounting().ListAccountingUsers(ctx, &modzy.ListAccountingUsersInput{}); err != nil {
+		logrus.WithError(err).Errorf("Failed to get accoutning-users")
+	} else {
+		logrus.Infof("Total Users: %d\n", len(out.Users))
+	}
+
+	// license
+	if out, err := client.Accounting().GetLicense(ctx); err != nil {
+		logrus.WithError(err).Errorf("Failed to get license")
+	} else {
+		logrus.Infof("# Licensed Engines: %s\n", out.License.ProcessingEngines)
+	}
+
+	// engines
+	if out, err := client.Resources().GetProcessingModels(ctx); err != nil {
+		logrus.WithError(err).Errorf("Failed to get model resources")
+	} else {
+		tot := 0
+		for _, m := range out.Models {
+			tot += len(m.Engines)
+		}
+		logrus.Infof("# Engines processing : %d\n", tot)
+	}
+
+	// latest models
+	if out, err := client.Models().GetLatestModels(ctx); err != nil {
+		logrus.WithError(err).Errorf("Failed to get latest models")
+	} else {
+		logrus.Infof("# Latest Models : %d\n", len(out.Models))
+	}
+
 }

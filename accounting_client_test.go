@@ -58,6 +58,41 @@ func TestHasEntitlementHTTPError(t *testing.T) {
 	}
 }
 
+func TestGetLicenseHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	_, err := client.Accounting().GetLicense(context.TODO())
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestGetLicense(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("expected method to be GET, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/license" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Write([]byte(`{"companyName": "cn"}`))
+	}))
+	defer serv.Close()
+
+	client := NewClient(serv.URL)
+	out, err := client.Accounting().GetLicense(context.TODO())
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.License.CompanyName != "cn" {
+		t.Errorf("Expected entitlement one, got %s", out.License.CompanyName)
+	}
+}
+
 func TestHasEntitlement(t *testing.T) {
 	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
@@ -86,5 +121,45 @@ func TestHasEntitlement(t *testing.T) {
 	}
 	if out != true {
 		t.Errorf("Expected to have entitlment")
+	}
+}
+
+func TestListAccountingUsersHTTPError(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	_, err := client.Accounting().ListAccountingUsers(context.TODO(), (&ListAccountingUsersInput{}).WithPaging(2, 3))
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestListAccountingUsers(t *testing.T) {
+	serv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("expected method to be GET, got %s", r.Method)
+		}
+		if r.RequestURI != "/api/accounting/users?page=7&per-page=2" {
+			t.Errorf("get url not expected: %s", r.RequestURI)
+		}
+		w.Header().Set("Link", `<https://example>; rel="next"`)
+		w.Write([]byte(`[{"email": "jsonID"},{"email": "jsonID2"}]`))
+	}))
+	defer serv.Close()
+	client := NewClient(serv.URL)
+	out, err := client.Accounting().ListAccountingUsers(context.TODO(), (&ListAccountingUsersInput{}).WithPaging(2, 7))
+	if err != nil {
+		t.Errorf("err not nil: %v", err)
+	}
+	if out.Users[0].Email != "jsonID" {
+		t.Errorf("response not parsed")
+	}
+	if out.NextPage == nil {
+		t.Errorf("expected NextPage to have a value")
+	}
+	if out.NextPage.Paging.Page != 8 {
+		t.Errorf("expected NextPage to be next")
 	}
 }
