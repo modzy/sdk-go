@@ -577,7 +577,48 @@ func listProjects(client modzy.Client) {
 		if err != nil {
 			logrus.WithError(err).Errorf("  Failed reading details")
 		} else {
-			logrus.Infof("  AccessKey prefix: %s", project.Project.AccessKeys[0].Prefix)
+			logrus.Infof("  Access key: %s", project.Project.AccessKeys[0].Prefix)
 		}
+
+		// predictions-made
+		accessKey := project.Project.AccessKeys[0].Prefix
+		if out, err := client.Dashboard().GetPredictionsMade(ctx, &modzy.GetPredictionsMadeInput{
+			AccessKeyPrefix: accessKey,
+		}); err != nil {
+			logrus.WithError(err).Errorf("Failed to get predictions-made")
+		} else {
+			logrus.Infof("  Predictions made: %d -> %d (%f%%) %v",
+				out.Summary.RecentPredictions, out.Summary.RecentPredictions,
+				out.Summary.Percentage, out.Recent,
+			)
+		}
+
+		// processed
+		if out, err := client.Dashboard().GetDataProcessed(ctx, &modzy.GetDataProcessedInput{
+			AccessKeyPrefix: accessKey,
+		}); err != nil {
+			logrus.WithError(err).Errorf("Failed to get data-processed")
+		} else {
+			logrus.Infof("  Data processed: %d -> %d (%f%%) %v",
+				out.Summary.RecentBytes, out.Summary.RecentBytes,
+				out.Summary.Percentage, out.Recent,
+			)
+		}
+
+		// active-models
+		if out, err := client.Dashboard().GetActiveModels(ctx, &modzy.GetActiveModelsInput{
+			AccessKeyPrefix: accessKey,
+		}); err != nil {
+			logrus.WithError(err).Errorf("Failed to get active-models")
+		} else {
+			logrus.Infof("  Active Models:")
+			if len(out.Models) == 0 {
+				logrus.Infof("    No active models")
+			}
+			for _, a := range out.Models {
+				logrus.Infof("    #%d: %s v%s (%d)", a.Ranking, a.Name, a.Version, a.ElapsedTime)
+			}
+		}
+
 	}
 }
