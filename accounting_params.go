@@ -54,3 +54,40 @@ type ListAccountingUsersOutput struct {
 type GetLicenseOutput struct {
 	License model.License `json:"license"`
 }
+
+type ListProjectsInput struct {
+	Paging PagingInput
+}
+
+// ListProjectsFilterField are known field names that can be used when filtering the jobs history
+type ListProjectsFilterField string
+
+const (
+	ListProjectsFilterFieldSearch ListProjectsFilterField = "search"
+	ListProjectsFilterFieldStatus ListProjectsFilterField = "status"
+)
+
+func (i *ListProjectsInput) WithPaging(perPage int, page int) *ListProjectsInput {
+	i.Paging = NewPaging(perPage, page)
+	return i
+}
+
+func (i *ListProjectsInput) WithFilter(field ListProjectsFilterField, value string) *ListProjectsInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), value)
+	return i
+}
+
+func (i *ListProjectsInput) WithFilterAnd(field ListProjectsFilterField, values ...string) *ListProjectsInput {
+	i.Paging = i.Paging.WithFilterAnd(string(field), values...)
+	return i
+}
+
+func (i *ListProjectsInput) WithFilterOr(field ListProjectsFilterField, values ...string) *ListProjectsInput {
+	i.Paging = i.Paging.WithFilterOr(string(field), values...)
+	return i
+}
+
+type ListProjectsOutput struct {
+	Projects []model.AccountingProject `json:"projects"`
+	NextPage *ListProjectsInput        `json:"nextPage"`
+}
