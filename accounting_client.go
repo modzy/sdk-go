@@ -2,6 +2,7 @@ package modzy
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/modzy/sdk-go/model"
@@ -18,6 +19,8 @@ type AccountingClient interface {
 	ListAccountingUsers(ctx context.Context, input *ListAccountingUsersInput) (*ListAccountingUsersOutput, error)
 	// ListProjects will list your projects
 	ListProjects(ctx context.Context, input *ListProjectsInput) (*ListProjectsOutput, error)
+	// GetProjectDetails will read the deatils about a project
+	GetProjectDetails(ctx context.Context, input *GetProjectDetailsInput) (*GetProjectDetailsOutput, error)
 }
 
 type standardAccountingClient struct {
@@ -117,5 +120,18 @@ func (c *standardAccountingClient) ListProjects(ctx context.Context, input *List
 	return &ListProjectsOutput{
 		Projects: items,
 		NextPage: nextPage,
+	}, nil
+}
+
+func (c *standardAccountingClient) GetProjectDetails(ctx context.Context, input *GetProjectDetailsInput) (*GetProjectDetailsOutput, error) {
+	var out model.AccountingProject
+	url := fmt.Sprintf("/api/accounting/projects/%s", input.ProjectID)
+	_, err := c.baseClient.requestor.Get(ctx, url, &out)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetProjectDetailsOutput{
+		Project: out,
 	}, nil
 }
