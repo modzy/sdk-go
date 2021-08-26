@@ -152,9 +152,9 @@ Modzy supports several *input types* such as `text`, `embedded` for Base64 strin
 
 ```go
 submitResponse, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInput{
-    ModelIdentifier="ed542963de",
-    ModelVersion="0.0.27",
-    Inputs=map[string]string{
+    ModelIdentifier:"ed542963de",
+    ModelVersion:"0.0.27",
+    Inputs:map[string]string{
         "my-input": {
             "input.txt": "Modzy is great!"
         }
@@ -165,7 +165,7 @@ submitResponse, err := client.Jobs().SubmitJobText(ctx, &modzy.SubmitJobTextInpu
 [Hold until the inference is complete and results become available](https://docs.modzy.com/reference/get-job-details):
 
 ```go
-jobDetails, err := submitResponse.JobActions.WaitForCompletion(ctx, 20*time.Second)
+jobDetails, err := submitResponse.WaitForCompletion(ctx, 20*time.Second)
 ```
 
 [Get the results](https://docs.modzy.com/reference/get-results):
