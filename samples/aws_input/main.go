@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -13,14 +11,15 @@ import (
 )
 
 func main() {
+	ctx := context.TODO()
+
 	// The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
 	// You can configure those params as is described in the README file (as environment variables, or by using the .env file),
 	// or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
-	ctx := context.TODO()
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if err := godotenv.Load(); err != nil {
+		log.Printf("NO .env file, will use current ENV\n")
 	}
+
 	// The MODZY_BASE_URL should point to the API services route which may be different from the Modzy page URL.
 	// (ie: https://modzy.example.com).
 	baseURL := os.Getenv("MODZY_BASE_URL")
@@ -35,16 +34,16 @@ func main() {
 	// Get the model object:
 	// If you already know the model identifier (i.e.: you got it from the URL of the model details page or from the input sample),
 	// you can skip this step. If you don't, you can find the model identifier by using its name as follows:
-	model, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{Name: "Multi-Language OCR"})
+	model, err := client.Models().GetModelDetailsByName(ctx, &modzy.GetModelDetailsByNameInput{Name: "Facial Embedding"})
 	// Or if you already know the model id and want to know more about the model, you can use this instead:
-	// model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "c60c8dbd79"})
+	// model, err := client.Models().GetModelDetails(ctx, &modzy.GetModelDetailsInput{ModelID: "f7e252e26a"})
 	if err != nil {
 		log.Fatalf("Unexpected error %s", err)
 		return
 	}
 	// You can find more information about how to query the models on the model_sample.go file.
 	// The model identifier is under the ModelID key. You can take a look at the other properties under ModelDetails struct
-	// Or just log the model identifier, and potencially the latest version
+	// Or just log the model identifier, and potentially the latest version
 	log.Printf("The model identifier is %s and the latest version is %s\n", model.Details.ModelID, model.Details.LatestVersion)
 	// Get the model version object:
 	// If you already know the model version and the input key(s) of the model version you can skip this step. Also, you can
@@ -67,45 +66,49 @@ func main() {
 		log.Printf("    key %s, type %s, description: %s\n", output.Name, output.MediaType, output.Description)
 	}
 	// Send the job:
-	// With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
-	// submit the job. Just prepare the FileInputItem map:
-	// A file input can be a Reader or any file path. This input type fits for any size files.
-	imagePath := "./samples/image.png"
-	configPath := "./samples/config.json"
-	mapSource := map[string]modzy.FileInputItem{
-		"source-key": modzy.FileInputItem{
-			"input":       modzy.FileInputFile(imagePath),
-			"config.json": modzy.FileInputFile(configPath),
+	// Amazon Simple Storage Service (AWS S3) is an object storage service (for more info visit: https://aws.amazon.com/s3/?nc1=h_ls).
+	// It allows to store images, videos, or other content as files. In order to use as input type, provide the following properties:
+	//    AWS Access Key: replace <<AccessKey>>
+	accessKey := "<<AccessKey>>"
+	//    AWS Secret Access Key: replace <<SecretAccessKey>>
+	secretAccessKey := "<<SecretAccessKey>>"
+	//    AWS Default Region : replace <<AWSRegion>>
+	region := "<<AWSRegion>>"
+	//    The Bucket Name: replace <<BucketName>>
+	bucketName := "<<BucketName>>"
+	//    The File Key: replace <<FileId>> (remember, this model needs an image as input)
+	fileKey := "<<FileId>>"
+	// With the info about the model (identifier) and the model version (version string, input/output keys), you are ready to
+	// submit the job. Just prepare the S3InputItem map:
+	mapSource := map[string]modzy.S3InputItem{
+		"source-key": modzy.S3InputItem{
+			"image": modzy.S3Input(bucketName, fileKey),
 		},
 	}
-	// An inference job groups input data that you send to a model. You can send any amount of inputs to
-	// process and you can identify and refer to a specific input by the key that you assign, for example we can add:
-	mapSource["second-key"] = modzy.FileInputItem{
-		"input":       modzy.FileInputFile(imagePath),
-		"config.json": modzy.FileInputFile(configPath),
+	// An inference job groups input data sent to a model. You can send any amount of inputs to
+	// process and you can identify and refer to a specific input by the key assigned. For example we can add:
+	mapSource["second-key"] = modzy.S3InputItem{
+		"image": modzy.S3Input(bucketName, fileKey),
 	}
-	// You don't need to load all the inputs from files, you can just convert the files to bytes as follows:
-	imageBytes, err := ioutil.ReadFile(imagePath)
-	configBytes := []byte("{\"languages\":[\"spa\"]}")
-	mapSource["another-key"] = modzy.FileInputItem{
-		"input":       modzy.FileInputReader(bytes.NewReader(imageBytes)),
-		"config.json": modzy.FileInputReader(bytes.NewReader(configBytes)),
+	mapSource["another-key"] = modzy.S3InputItem{
+		"image": modzy.S3Input(bucketName, fileKey),
 	}
-	//If you send a wrong input key, the model fails to process the input.
-	mapSource["wrong-key"] = modzy.FileInputItem{
-		"input":       modzy.FileInputFile(imagePath),
-		"config.json": modzy.FileInputFile(configPath),
+	// If you send a wrong input key, the model fails to process the input.
+	mapSource["wrong-key"] = modzy.S3InputItem{
+		"a.wrong.key": modzy.S3Input(bucketName, fileKey),
 	}
-	//If you send a correct input key but some wrong values, the model fails too.
-	mapInput := make(modzy.FileInputItem)
-	mapInput["input"] = modzy.FileInputFile(configPath)
-	mapInput["config.json"] = modzy.FileInputFile(imagePath)
-	mapSource["wrong-value"] = mapInput
-	//
-	submitResponse, err := client.Jobs().SubmitJobFile(ctx, &modzy.SubmitJobFileInput{
-		ModelIdentifier: model.Details.ModelID,
-		ModelVersion:    modelVersion.Details.Version,
-		Inputs:          mapSource,
+	// If you send a correct input key, but a wrong AWS S3 value key, the model fails to process the input.
+	mapInput := make(modzy.S3InputItem)
+	mapInput["image"] = modzy.S3Input(bucketName, "wrong-aws-file-key.png")
+	mapSource["wrong-key"] = mapInput
+	// When you have all your inputs ready, you can use our helper method to submit the job as follows:
+	submitResponse, err := client.Jobs().SubmitJobS3(ctx, &modzy.SubmitJobS3Input{
+		ModelIdentifier:    model.Details.ModelID,
+		ModelVersion:       modelVersion.Details.Version,
+		AWSAccessKeyID:     accessKey,
+		AWSSecretAccessKey: secretAccessKey,
+		AWSRegion:          region,
+		Inputs:             mapSource,
 	})
 	if err != nil {
 		log.Fatalf("Unexpected error %s", err)
