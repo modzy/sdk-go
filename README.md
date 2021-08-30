@@ -251,7 +251,7 @@ Or follow the instructions [here](https://github.com/modzy/sdk-go/tree/main/cont
 And then, you can:
 
 ```bash
-$ go run samples/model_samples.go
+$ go run samples/models/main.go
 ```
 ## Contributing
 
