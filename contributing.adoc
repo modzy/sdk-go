@@ -11,7 +11,7 @@
 
 <div align="center">
 
-<h1>Contributing to Modzy's Java SDK</h1>
+<h1>Contributing to Modzy's Go SDK</h1>
 
 <br>
 <br>
