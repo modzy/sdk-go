@@ -10,7 +10,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/modzy/sdk-go)
 ![GitHub last commit](https://img.shields.io/github/last-commit/modzy/sdk-go)
 ![GitHub Release Date](https://img.shields.io/github/issues-raw/modzy/sdk-go)
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/modzy/sdk-go)](https://goreportcard.com/report/github.com/modzy/sdk-go)
 
 [The job lifecycle](https://docs.modzy.com/reference/the-job-lifecycle) | [API Keys](https://docs.modzy.com/reference/api-keys-1) | [Samples](https://github.com/modzy/sdk-go/tree/main/samples) | [Documentation](https://docs.modzy.com/docs)
 
