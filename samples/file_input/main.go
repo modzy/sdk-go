@@ -74,7 +74,7 @@ func main() {
 	imagePath := "./samples/image.png"
 	configPath := "./samples/config.json"
 	mapSource := map[string]modzy.FileInputItem{
-		"source-key": modzy.FileInputItem{
+		"source-key": {
 			"input":       modzy.FileInputFile(imagePath),
 			"config.json": modzy.FileInputFile(configPath),
 		},
@@ -143,7 +143,7 @@ func main() {
 			results.Results.Completed,
 			results.Results.Failed)
 		// Notice that we are iterating through the same input source keys
-		for key, _ := range mapSource {
+		for key := range mapSource {
 			// The result object has the individual results of each job input. In this case the output key is called
 			// results.json, so we can get the results as follows:
 			if result, exists := results.Results.Results[key]; exists {

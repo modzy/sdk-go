@@ -81,7 +81,7 @@ func main() {
 	// With the info about the model (identifier) and the model version (version string, input/output keys), you are ready to
 	// submit the job. Just prepare the S3InputItem map:
 	mapSource := map[string]modzy.S3InputItem{
-		"source-key": modzy.S3InputItem{
+		"source-key": {
 			"image": modzy.S3Input(bucketName, fileKey),
 		},
 	}
@@ -145,7 +145,7 @@ func main() {
 			results.Results.Completed,
 			results.Results.Failed)
 		// Notice that we are iterating through the same input source keys
-		for key, _ := range mapSource {
+		for key := range mapSource {
 			// The result object has the individual results of each job input. In this case the output key is called
 			// results.json, so we can get the results as follows:
 			if result, exists := results.Results.Results[key]; exists {
