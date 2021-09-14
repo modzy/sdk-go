@@ -14,7 +14,7 @@ import (
 )
 
 type JobsClient interface {
-	// GetJobDetails will get the deatils of a job
+	// GetJobDetails will get the details of a job
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	// ListJobsHistory will list job history.  This supports paging, filtering and sorting.
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)

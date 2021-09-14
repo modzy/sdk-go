@@ -45,7 +45,7 @@ func TestPagingChain(t *testing.T) {
 		t.Errorf("Page not nexted properly, got %d:", next.Page)
 	}
 
-	// bot this and the next should be the same in fitlers and sorting
+	// bot this and the next should be the same in filters and sorting
 	for _, gotPaging := range []PagingInput{paging, paging.Next()} {
 		if gotPaging.PerPage != 20 {
 			t.Errorf("PerPage not set")

@@ -19,7 +19,7 @@ type AccountingClient interface {
 	ListAccountingUsers(ctx context.Context, input *ListAccountingUsersInput) (*ListAccountingUsersOutput, error)
 	// ListProjects will list your projects
 	ListProjects(ctx context.Context, input *ListProjectsInput) (*ListProjectsOutput, error)
-	// GetProjectDetails will read the deatils about a project
+	// GetProjectDetails will read the details about a project
 	GetProjectDetails(ctx context.Context, input *GetProjectDetailsInput) (*GetProjectDetailsOutput, error)
 }
 

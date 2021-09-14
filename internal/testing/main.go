@@ -90,7 +90,7 @@ func errorChecking() {
 		if errors.Cause(err) == modzy.ErrUnauthorized {
 			logrus.WithError(err).Warnf("No authentication mechanism was provided")
 		} else {
-			logrus.WithError(err).Warnf("An unexpected error occured")
+			logrus.WithError(err).Warnf("An unexpected error occurred")
 		}
 
 	} else {
