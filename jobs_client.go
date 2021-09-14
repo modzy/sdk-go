@@ -1,4 +1,3 @@
-// nolint:errcheck
 package modzy
 
 import (
@@ -15,7 +14,7 @@ import (
 )
 
 type JobsClient interface {
-	// GetJobDetails will get the deatils of a job
+	// GetJobDetails will get the details of a job
 	GetJobDetails(ctx context.Context, input *GetJobDetailsInput) (*GetJobDetailsOutput, error)
 	// ListJobsHistory will list job history.  This supports paging, filtering and sorting.
 	ListJobsHistory(ctx context.Context, input *ListJobsHistoryInput) (*ListJobsHistoryOutput, error)
@@ -191,12 +190,12 @@ func (c *standardJobsClient) SubmitJobFile(ctx context.Context, input *SubmitJob
 		// uploading the inputs failed, close the job
 		_, _ = jobActions.Cancel(ctx)
 		return nil, errors.WithMessage(chunkErr, "job canceled due to failure to upload data")
-	} else {
-		// close the job since everything is posted
-		closeURL := fmt.Sprintf("/api/jobs/%s/close", response.JobIdentifier)
-		if _, err := c.baseClient.requestor.Post(ctx, closeURL, nil, nil); err != nil {
-			return nil, errors.WithMessage(err, "failed to close open job after successfully uploading inputs")
-		}
+	}
+
+	// close the job since everything is posted
+	closeURL := fmt.Sprintf("/api/jobs/%s/close", response.JobIdentifier)
+	if _, err := c.baseClient.requestor.Post(ctx, closeURL, nil, nil); err != nil {
+		return nil, errors.WithMessage(err, "failed to close open job after successfully uploading inputs")
 	}
 
 	return &SubmitJobFileOutput{
