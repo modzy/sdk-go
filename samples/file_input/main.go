@@ -45,7 +45,7 @@ func main() {
 	}
 	// You can find more information about how to query the models on the model_sample.go file.
 	// The model identifier is under the ModelID key. You can take a look at the other properties under ModelDetails struct
-	// Or just log the model identifier, and potencially the latest version
+	// Or just log the model identifier, and potentially the latest version
 	log.Printf("The model identifier is %s and the latest version is %s\n", model.Details.ModelID, model.Details.LatestVersion)
 	// Get the model version object:
 	// If you already know the model version and the input key(s) of the model version you can skip this step. Also, you can

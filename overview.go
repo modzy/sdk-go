@@ -1,4 +1,4 @@
-// This package provides an SDK to easily access the modzy http API.
+// Package modzy provides an SDK to easily access the modzy http API.
 //
 // To use this SDK you need to create a modzy Client and then call any useful functions.  For example, if you need to get details about a model:
 // 	client := modzy.NewClient("https://your-base-url.example.com").WithAPIKey("your-api-key")

@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 
+	"github.com/modzy/sdk-go/internal/impossible"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +47,7 @@ type JobResult struct {
 
 var _ json.Unmarshaler = &JobResult{}
 
-// Custom unmarshal in order to fill in ResultData with extra fields
+// UnmarshalJSON custom unmarshal in order to fill in ResultData with extra fields
 func (j *JobResult) UnmarshalJSON(b []byte) error {
 	// make a junk type so that we don't recurse into this unmarshal
 	type innerJobResult JobResult
@@ -59,8 +60,9 @@ func (j *JobResult) UnmarshalJSON(b []byte) error {
 
 	// get the extra fields
 	extra := make(map[string]interface{})
+
 	// I cannot think of a way this could error after the previous marshal passes...
-	json.Unmarshal(b, &extra)
+	impossible.HandleError(json.Unmarshal(b, &extra))
 
 	// do not repeat the known fields within the extras
 	for _, f := range []string{

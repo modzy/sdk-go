@@ -53,7 +53,7 @@ func (p PagingInput) WithFilterAnd(field string, values ...string) PagingInput {
 	return p
 }
 
-// WithFilterAnd will create a paging filter that will filter for any value provided
+// WithFilterOr will create a paging filter that will filter for any value provided
 func (p PagingInput) WithFilterOr(field string, values ...string) PagingInput {
 	p.Filters = append(p.Filters, Filter{
 		Type:   FilterTypeOr,

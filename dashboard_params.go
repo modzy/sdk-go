@@ -26,7 +26,7 @@ type GetAlertsOutput struct {
 	Alerts []AlertSummary `json:"alerts"`
 }
 
-// GetAlertsDetailsInput -
+// GetAlertDetailsInput -
 type GetAlertDetailsInput struct {
 	Type AlertType `json:"type"`
 }
@@ -37,6 +37,7 @@ type GetAlertDetailsOutput struct {
 	Entities []string  `json:"entities"`
 }
 
+// GetDataProcessedInput -
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetDataProcessedInput struct {
@@ -53,6 +54,7 @@ type GetDataProcessedOutput struct {
 	Recent  []model.DataProcessingRecent `json:"recent"`
 }
 
+// GetPredictionsMadeInput -
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetPredictionsMadeInput struct {

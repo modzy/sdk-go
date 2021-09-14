@@ -34,7 +34,7 @@ const (
 	ListJobsHistoryFilterFieldAccessKey ListJobsHistoryFilterField = "accessKey" // I see "prefix" in the docs -- what does that mean?
 )
 
-// ListJobsHistoryFilterField are known field names that can be used when sorting the jobs history
+// ListJobsHistorySortField are known field names that can be used when sorting the jobs history
 type ListJobsHistorySortField string
 
 const (

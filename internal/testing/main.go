@@ -1,4 +1,5 @@
-// This package provides code examples that utilize the Modzy sdk.
+// main package provides code examples that utilize the Modzy sdk.
+// nolint
 package main
 
 import (
@@ -253,25 +254,26 @@ func afterSubmit(client modzy.Client, cancel bool, job modzy.JobActions) {
 		}
 		logrus.Infof("Job canceled: %s, %d", cancelOut.Details.Status, cancelOut.Details.HoursDeleteInput)
 		return
-	} else {
-		logrus.Info("Will wait until job completes")
-		jobDetails, err := job.WaitForCompletion(ctx, time.Second*5)
-		if err != nil {
-			logrus.WithError(err).Fatalf("Failed to wait for job completion")
-			return
-		}
-		logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
-		jobResults, err := job.GetResults(ctx)
-		if err != nil {
-			logrus.WithError(err).Fatalf("Failed to get job results")
-			return
-		}
-		logrus.Infof("Job results: %s -> %d results", jobResults.Results.JobIdentifier, jobResults.Results.Total)
-
-		if len(jobResults.Results.Failures) > 0 {
-			logrus.Warnf("Job had failures: %+v", jobResults.Results.Failures)
-		}
 	}
+
+	logrus.Info("Will wait until job completes")
+	jobDetails, err := job.WaitForCompletion(ctx, time.Second*5)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to wait for job completion")
+		return
+	}
+	logrus.Infof("Job completed: %s -> %s", jobDetails.Details.JobIdentifier, jobDetails.Details.Status)
+	jobResults, err := job.GetResults(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatalf("Failed to get job results")
+		return
+	}
+	logrus.Infof("Job results: %s -> %d results", jobResults.Results.JobIdentifier, jobResults.Results.Total)
+
+	if len(jobResults.Results.Failures) > 0 {
+		logrus.Warnf("Job had failures: %+v", jobResults.Results.Failures)
+	}
+
 }
 
 func describeJob(client modzy.Client, jobIdentifier string) {

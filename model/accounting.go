@@ -30,7 +30,7 @@ type AccountingProject struct {
 	Status      string      `json:"status"`
 	Visibility  string      `json:"visibility"`
 	AccessKeys  []AccessKey `json:"accessKeys"`
-	User        UserSummary `json"user"`
+	User        UserSummary `json:"user"`
 	CreatedAt   ModzyTime   `json:"createdAt"`
 	UpdatedAt   ModzyTime   `json:"updatedAt"`
 }
