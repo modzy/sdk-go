@@ -16,7 +16,6 @@ func main() {
 	// The system admin can provide the right base API URL, the API key can be downloaded from your profile page on Modzy.
 	// You can configure those params as is described in the README file (as environment variables, or by using the .env file),
 	// or you can just update the BASE_URL and API_KEY variables and use this sample code (not recommended for production environments).
-	err := godotenv.Load()
 	if err := godotenv.Load(); err != nil {
 		log.Printf("NO .env file, will use current ENV\n")
 	}
@@ -44,7 +43,7 @@ func main() {
 	}
 	// You can find more information about how to query the models on the model_sample.go file.
 	// The model identifier is under the ModelID key. You can take a look at the other properties under ModelDetails struct
-	// Or just log the model identifier, and potencially the latest version
+	// Or just log the model identifier, and potentially the latest version
 	log.Printf("The model identifier is %s and the latest version is %s\n", model.Details.ModelID, model.Details.LatestVersion)
 	// Get the model version object:
 	// If you already know the model version and the input key(s) of the model version you can skip this step. Also, you can
@@ -128,7 +127,7 @@ func main() {
 			results.Results.Completed,
 			results.Results.Failed)
 		// Notice that we are iterating through the same input source keys
-		for key, _ := range mapSource {
+		for key := range mapSource {
 			// The result object has the individual results of each job input. In this case the output key is called
 			// results.json, so we can get the results as follows:
 			if result, exists := results.Results.Results[key]; exists {

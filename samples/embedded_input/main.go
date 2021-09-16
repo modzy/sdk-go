@@ -78,7 +78,7 @@ func main() {
 	// With the info about the model (identifier), the model version (version string, input/output keys), you are ready to
 	// submit the job. Just prepare the EmbeddedInputItem map:
 	mapSource := map[string]modzy.EmbeddedInputItem{
-		"source-key": modzy.EmbeddedInputItem{
+		"source-key": {
 			"input":       modzy.URIEncodeFile(imagePath, "image/png"),
 			"config.json": modzy.URIEncodeFile(configPath, "application/json"),
 		},

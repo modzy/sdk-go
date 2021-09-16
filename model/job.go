@@ -1,4 +1,4 @@
-// model package contains types as defined by the http api.
+// Package model contains types as defined by the http api.
 package model
 
 type ModelIdentifier struct {

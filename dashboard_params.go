@@ -26,7 +26,7 @@ type GetAlertsOutput struct {
 	Alerts []AlertSummary `json:"alerts"`
 }
 
-// GetAlertsDetailsInput -
+// GetAlertDetailsInput -
 type GetAlertDetailsInput struct {
 	Type AlertType `json:"type"`
 }
@@ -37,6 +37,7 @@ type GetAlertDetailsOutput struct {
 	Entities []string  `json:"entities"`
 }
 
+// GetDataProcessedInput -
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetDataProcessedInput struct {
@@ -53,6 +54,7 @@ type GetDataProcessedOutput struct {
 	Recent  []model.DataProcessingRecent `json:"recent"`
 }
 
+// GetPredictionsMadeInput -
 // The default and minimum accepted time between BtartDate and EndDate is 7 days.
 // If only one date is provided the API matches it with a 7 day range.
 type GetPredictionsMadeInput struct {
@@ -98,27 +100,27 @@ type GetActiveModelsOutput struct {
 type PrometheusMetricType string
 
 const (
-	// The number of cores requested by a container
+	// PrometheusMetricTypeCPURequest - The number of cores requested by a container
 	PrometheusMetricTypeCPURequest PrometheusMetricType = "cpu-requested"
-	// The cluster’s total number of available CPU cores.
+	// PrometheusMetricTypeCPUAvailable - The cluster’s total number of available CPU cores.
 	PrometheusMetricTypeCPUAvailable PrometheusMetricType = "cpu-available"
-	// The total amount of “system” time + the total amount of “user” time
+	// PrometheusMetricTypeCPUUsed - The total amount of “system” time + the total amount of “user” time
 	PrometheusMetricTypeCPUUsed PrometheusMetricType = "cpu-used"
-	// The number of memory bytes requested by a container
+	// PrometheusMetricTypeMemoryRequested - The number of memory bytes requested by a container
 	PrometheusMetricTypeMemoryRequested PrometheusMetricType = "memory-requested"
-	//  A node’s total allocatable memory bytes
+	// PrometheusMetricTypeMemoryAvailable - A node’s total allocatable memory bytes
 	PrometheusMetricTypeMemoryAvailable PrometheusMetricType = "memory-available"
-	// The current memory usage in bytes, it includes all memory regardless of when it was accessed
+	// PrometheusMetricTypeMemoryUsed - The current memory usage in bytes, it includes all memory regardless of when it was accessed
 	PrometheusMetricTypeMemoryUsed PrometheusMetricType = "memory-used"
-	// cpu-used / cpu-available
+	// PrometheusMetricTypeCPUOverallUsage - cpu-used / cpu-available
 	PrometheusMetricTypeCPUOverallUsage PrometheusMetricType = "cpu-overall-usage"
-	// memory-used / memory-available
+	// PrometheusMetricTypeMemoryOverallUsage - memory-used / memory-available
 	PrometheusMetricTypeMemoryOverallUsage PrometheusMetricType = "memory-overall-usage"
-	// cpu-requested / cpu-available
+	// PrometheusMetricTypeCPUCurrentUsage - cpu-requested / cpu-available
 	PrometheusMetricTypeCPUCurrentUsage PrometheusMetricType = "cpu-current-usage"
 )
 
-// The default and minimum accepted time between startDate and endDate is 7 days.
+// GetPrometheusMetricInput - The default and minimum accepted time between startDate and endDate is 7 days.
 type GetPrometheusMetricInput struct {
 	BeginDate model.ModzyDate
 	EndDate   model.ModzyDate
